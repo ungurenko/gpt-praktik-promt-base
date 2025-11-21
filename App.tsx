@@ -197,35 +197,35 @@ const HomePage = () => {
         </div>
       )}
 
-      {/* Categories Grid (Using Mesh Gradients) */}
+      {/* Categories Grid (Updated to Clean Tech Style with Themes) */}
       {!isSearching && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {categories.map((cat, index) => (
             <Link 
               key={cat.id} 
               to={`/category/${cat.id}`}
-              // USE mesh-card-base AND mesh-bg-{theme} classes. The text is automatically white due to mesh-card-base
-              className={`mesh-card-base mesh-bg-${cat.theme || 'orange'} rounded-[2.5rem] animate-enter group`}
+              // Apply theme class (defaults to orange if not set) and positioning glow
+              className={`clean-card theme-${cat.theme || 'orange'} card-glow-${index % 5} rounded-[2.5rem] animate-enter group`}
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="aspect-[16/9] w-full p-10 flex flex-col justify-between relative z-10">
                 
                 {/* Top Tag */}
                 <div className="self-start">
-                  <div className="inline-flex px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white text-[10px] font-bold tracking-wider uppercase mb-3 shadow-sm">
+                  <div className="inline-flex px-3 py-1 rounded-full bg-stone-100 border border-stone-200 text-stone-500 text-[10px] font-bold tracking-wider uppercase mb-3 group-hover:bg-white group-hover:shadow-sm transition-all">
                     Категория
                   </div>
                 </div>
 
                 {/* Content */}
                 <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
-                  <h2 className="text-3xl font-bold mb-2 leading-tight tracking-tight drop-shadow-md">{cat.title}</h2>
-                  <p className="text-white/80 text-sm font-medium line-clamp-2 leading-relaxed">{cat.description}</p>
+                  <h2 className="text-stone-900 text-3xl font-bold mb-2 leading-tight tracking-tight">{cat.title}</h2>
+                  <p className="text-stone-500 text-sm font-medium opacity-90 line-clamp-2 leading-relaxed">{cat.description}</p>
                 </div>
 
-                {/* Decorative Icon */}
+                {/* Decorative Icon (Optional) */}
                  <div className="absolute top-8 right-8 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-x-4 group-hover:translate-x-0">
-                   <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/30">
+                   <div className="w-12 h-12 rounded-full bg-stone-50 flex items-center justify-center text-stone-400">
                       <ArrowRight size={24} />
                    </div>
                  </div>

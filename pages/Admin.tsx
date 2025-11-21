@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import Layout from '../components/Layout';
-import { Plus, Trash2, Save, ArrowLeft, Folder, FileText, Bot, MoreHorizontal, X, Image as ImageIcon, Layout as LayoutIcon, Upload, ChevronRight, Layers, ArrowDown, GripVertical, Database, Lock, LogOut, Check } from 'lucide-react';
+import { Plus, Trash2, Save, ArrowLeft, Folder, FileText, Bot, MoreHorizontal, X, Image as ImageIcon, Layout as LayoutIcon, Upload, ChevronRight, Layers, ArrowDown, GripVertical, Database, Lock, LogOut } from 'lucide-react';
 import { Category, Section, PromptItem, ItemType } from '../types';
 
 // --- Clean Tech UI Components ---
@@ -165,8 +166,8 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
       <div className="grid gap-4 animate-enter" style={{ animationDelay: '0.1s' }}>
         {categories.map((cat, idx) => (
           <div key={cat.id} className="group flex items-center bg-white p-5 pr-6 rounded-[2rem] border border-stone-100 hover:border-orange-100 hover:shadow-soft hover:-translate-y-1 transition-all duration-300">
-            <div className={`w-16 h-16 rounded-2xl mr-6 flex items-center justify-center transition-colors duration-300 mesh-bg-${cat.theme || 'orange'}`}>
-               <div className={`w-4 h-4 rounded-full bg-white opacity-50 shadow-sm`}></div>
+            <div className={`w-16 h-16 rounded-2xl mr-6 bg-stone-50 border border-stone-100 flex items-center justify-center theme-${cat.theme || 'orange'} transition-colors duration-300`}>
+               <div className={`w-4 h-4 rounded-full bg-current opacity-50 shadow-sm`}></div>
             </div>
             <div className="flex-1 py-1">
               <h3 className="font-bold text-stone-800 text-lg mb-1 group-hover:text-orange-600 transition-colors">{cat.title}</h3>
@@ -224,20 +225,20 @@ const CategoryEditor = () => {
   };
 
   const themes = [
-    { id: 'orange', label: 'Sunset', desc: 'Orange & Pink' },
-    { id: 'rose', label: 'Passion', desc: 'Red & Rose' },
-    { id: 'blue', label: 'Ocean', desc: 'Deep Blue' },
-    { id: 'violet', label: 'Cosmic', desc: 'Purple & Violet' },
-    { id: 'emerald', label: 'Nature', desc: 'Green & Teal' },
-    { id: 'amber', label: 'Luxury', desc: 'Gold & Dark' },
+    { id: 'orange', color: '#FF5500' },
+    { id: 'rose', color: '#F43F5E' },
+    { id: 'blue', color: '#3B82F6' },
+    { id: 'violet', color: '#8B5CF6' },
+    { id: 'emerald', color: '#10B981' },
+    { id: 'amber', color: '#F59E0B' },
   ];
 
   return (
     <Layout breadcrumbs={[{ label: 'Dashboard', to: '/admin' }, { label: 'Редактирование категории' }]}>
       <div className="mb-10 flex items-center justify-between animate-enter">
         <div className="flex items-center gap-5">
-           <div className={`w-14 h-14 rounded-[1.2rem] flex items-center justify-center shadow-sm mesh-bg-${formData.theme || 'orange'}`}>
-             <LayoutIcon size={28} className="text-white" />
+           <div className={`w-14 h-14 rounded-[1.2rem] flex items-center justify-center shadow-sm bg-gradient-to-br from-stone-50 to-white border border-stone-100`}>
+             <LayoutIcon size={28} className={`theme-${formData.theme || 'orange'} text-current`} />
            </div>
            <div>
              <h1 className="text-3xl font-bold text-stone-900 tracking-tight leading-none mb-1">
@@ -271,32 +272,25 @@ const CategoryEditor = () => {
             />
             
             <div className="mb-2">
-              <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-3 ml-1">Фон карточки (Mesh Gradient)</label>
-              <div className="grid grid-cols-2 gap-3">
+              <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-3 ml-1">Акцент (Градиент)</label>
+              <div className="flex flex-wrap gap-3">
                 {themes.map((t) => (
                   <button
                     key={t.id}
                     onClick={() => setFormData({ ...formData, theme: t.id as any })}
-                    className={`relative group rounded-2xl h-20 w-full overflow-hidden transition-all ${
+                    className={`w-11 h-11 rounded-2xl border-2 transition-all relative shadow-sm ${
                       (formData.theme || 'orange') === t.id
-                        ? 'ring-4 ring-stone-800 shadow-xl transform scale-105 z-10' 
-                        : 'ring-1 ring-stone-200 hover:ring-orange-300 hover:scale-105'
+                        ? 'border-stone-800 scale-105 ring-4 ring-stone-100' 
+                        : 'border-transparent hover:scale-105 hover:shadow-md'
                     }`}
+                    style={{ background: t.color }}
+                    title={t.id}
                   >
-                     {/* The Gradient Preview */}
-                     <div className={`absolute inset-0 mesh-bg-${t.id}`} />
-                     
-                     {/* Label */}
-                     <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/10">
-                        {(formData.theme || 'orange') === t.id && (
-                            <div className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center shadow-md mb-1">
-                                <Check size={14} strokeWidth={4} />
-                            </div>
-                        )}
-                        <span className="text-white text-[10px] font-bold uppercase tracking-widest shadow-black drop-shadow-md">
-                            {t.label}
-                        </span>
-                     </div>
+                     {(formData.theme || 'orange') === t.id && (
+                       <div className="absolute inset-0 flex items-center justify-center">
+                         <div className="w-2.5 h-2.5 bg-white rounded-full shadow-sm" />
+                       </div>
+                     )}
                   </button>
                 ))}
               </div>
