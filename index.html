@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>База промтов GPT-ПРАКТИК</title>
+    <!-- Tailwind CDN (для локальной разработки можно оставить, но лучше установить через npm) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     
@@ -231,15 +232,17 @@
         },
       }
     </script>
-    <script type="importmap">
+<script type="importmap">
 {
   "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "driver.js": "https://aistudiocdn.com/driver.js@^1.4.0",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "vite": "https://aistudiocdn.com/vite@^7.2.4",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^6.28.0",
-    "driver.js": "https://aistudiocdn.com/driver.js@^1.4.0"
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0"
   }
 }
 </script>
@@ -247,7 +250,7 @@
   <body class="h-screen overflow-hidden selection:bg-orange-100 selection:text-orange-800">
     <div class="bg-mesh"></div>
     <div id="root" class="h-full flex flex-col relative z-10"></div>
-    <!-- ENTRY POINT: Critical for loading the app -->
-    <script type="module" src="./index.tsx"></script>
+    <!-- ENTRY POINT for VITE -->
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
