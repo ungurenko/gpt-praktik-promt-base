@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import Layout from '../components/Layout';
-import { Plus, Trash2, Save, ArrowLeft, Folder, FileText, Bot, MoreHorizontal, X, Image as ImageIcon, Layout as LayoutIcon, Upload, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, Save, ArrowLeft, Folder, FileText, Bot, MoreHorizontal, X, Image as ImageIcon, Layout as LayoutIcon, Upload, ChevronRight, Layers, ArrowDown, GripVertical } from 'lucide-react';
 import { Category, Section, PromptItem, ItemType } from '../types';
 
 // --- Clean Tech UI Components ---
@@ -292,12 +292,12 @@ const SectionEditor = () => {
     const newId = `item-${Date.now()}`;
     addItem(categoryId!, sectionId!, {
       id: newId,
-      title: type === ItemType.ASSISTANT ? 'Новый ассистент' : 'Новый промт',
+      title: type === ItemType.SEQUENCE ? 'Новая связка' : (type === ItemType.ASSISTANT ? 'Новый ассистент' : 'Новый промт'),
       description: 'Краткое описание',
       instructions: '',
       content: '',
       type: type,
-      subPrompts: type === ItemType.ASSISTANT ? [] : undefined
+      subPrompts: []
     });
     navigate(`/admin/category/${categoryId}/section/${sectionId}/item/${newId}`);
   };
@@ -357,13 +357,16 @@ const SectionEditor = () => {
             <div className="flex justify-between items-center mb-8">
                <div>
                  <h3 className="font-bold text-stone-800 text-lg">Контент</h3>
-                 <p className="text-stone-400 text-xs font-medium mt-1">Промты и ассистенты</p>
+                 <p className="text-stone-400 text-xs font-medium mt-1">Промты, связки и ассистенты</p>
                </div>
                <div className="flex gap-2">
-                 <Button variant="secondary" className="!py-2 !px-4 !text-xs" onClick={() => handleAddItem(ItemType.PROMPT)}>
+                 <Button variant="secondary" className="!py-2 !px-3 !text-xs" onClick={() => handleAddItem(ItemType.PROMPT)}>
                    <Plus size={14} /> Промт
                  </Button>
-                 <Button variant="secondary" className="!py-2 !px-4 !text-xs" onClick={() => handleAddItem(ItemType.ASSISTANT)}>
+                 <Button variant="secondary" className="!py-2 !px-3 !text-xs" onClick={() => handleAddItem(ItemType.SEQUENCE)}>
+                   <Plus size={14} /> Связка (Цепочка)
+                 </Button>
+                 <Button variant="secondary" className="!py-2 !px-3 !text-xs" onClick={() => handleAddItem(ItemType.ASSISTANT)}>
                    <Plus size={14} /> Ассистент
                  </Button>
                </div>
@@ -373,12 +376,17 @@ const SectionEditor = () => {
               {section.items.map((item, idx) => (
                 <div key={item.id} className="flex items-center justify-between p-5 rounded-2xl bg-white border border-stone-100 hover:border-blue-200 hover:shadow-soft transition-all group animate-enter" style={{ animationDelay: `${idx * 0.05}s` }}>
                   <div className="flex items-center gap-4">
-                    <div className={`p-2.5 rounded-xl ${item.type === ItemType.ASSISTANT ? 'bg-rose-50 text-rose-600' : 'bg-orange-50 text-orange-600'}`}>
-                      {item.type === ItemType.ASSISTANT ? <Bot size={20} /> : <FileText size={20} />}
+                    <div className={`p-2.5 rounded-xl ${item.type === ItemType.ASSISTANT ? 'bg-rose-50 text-rose-600' : (item.type === ItemType.SEQUENCE ? 'bg-violet-50 text-violet-600' : 'bg-orange-50 text-orange-600')}`}>
+                      {item.type === ItemType.ASSISTANT ? <Bot size={20} /> : (item.type === ItemType.SEQUENCE ? <Layers size={20} /> : <FileText size={20} />)}
                     </div>
                     <div>
                       <div className="font-bold text-stone-800 text-sm">{item.title}</div>
-                      <div className="text-xs text-stone-400 truncate max-w-[300px] font-medium mt-0.5">{item.description}</div>
+                      <div className="text-xs text-stone-400 truncate max-w-[300px] font-medium mt-0.5 flex items-center gap-2">
+                        <span className="uppercase text-[9px] tracking-wider bg-stone-100 px-1.5 py-0.5 rounded">
+                          {item.type === ItemType.SEQUENCE ? 'Цепочка' : (item.type === ItemType.ASSISTANT ? 'Ассистент' : 'Промт')}
+                        </span>
+                        {item.description}
+                      </div>
                     </div>
                   </div>
                   <div className="flex gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
@@ -425,7 +433,29 @@ const ItemEditor = () => {
     navigate(`/admin/category/${categoryId}/section/${sectionId}`);
   };
 
+  // Helpers for sub-prompts (used in Assistants and Sequences)
+  const handleAddSubPrompt = () => {
+    const current = formData.subPrompts || [];
+    setFormData({ 
+      ...formData, 
+      subPrompts: [...current, { title: `Шаг ${current.length + 1}`, content: '' }] 
+    });
+  };
+
+  const handleUpdateSubPrompt = (idx: number, field: 'title' | 'content', value: string) => {
+    const current = [...(formData.subPrompts || [])];
+    current[idx] = { ...current[idx], [field]: value };
+    setFormData({ ...formData, subPrompts: current });
+  };
+
+  const handleDeleteSubPrompt = (idx: number) => {
+    const current = [...(formData.subPrompts || [])];
+    current.splice(idx, 1);
+    setFormData({ ...formData, subPrompts: current });
+  };
+
   const isAssistant = formData.type === ItemType.ASSISTANT;
+  const isSequence = formData.type === ItemType.SEQUENCE;
 
   return (
     <Layout breadcrumbs={[
@@ -435,14 +465,18 @@ const ItemEditor = () => {
       <div className="max-w-4xl mx-auto animate-enter">
         <div className="flex items-center justify-between mb-10">
            <div className="flex items-center gap-5">
-              <div className={`w-14 h-14 rounded-[1.2rem] border border-stone-100 flex items-center justify-center shadow-sm ${isAssistant ? 'bg-rose-50 text-rose-600' : 'bg-orange-50 text-orange-600'}`}>
-                {isAssistant ? <Bot size={26} /> : <FileText size={26} />}
+              <div className={`w-14 h-14 rounded-[1.2rem] border border-stone-100 flex items-center justify-center shadow-sm ${
+                isAssistant ? 'bg-rose-50 text-rose-600' : (isSequence ? 'bg-violet-50 text-violet-600' : 'bg-orange-50 text-orange-600')
+              }`}>
+                {isAssistant ? <Bot size={26} /> : (isSequence ? <Layers size={26} /> : <FileText size={26} />)}
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-stone-900 tracking-tight leading-none mb-1">
                   Редактирование
                 </h1>
-                <p className="text-stone-400 text-sm font-medium">{isAssistant ? 'GPT Ассистент' : 'Промт'}</p>
+                <p className="text-stone-400 text-sm font-medium">
+                  {isAssistant ? 'GPT Ассистент' : (isSequence ? 'Связка промтов' : 'Промт')}
+                </p>
               </div>
            </div>
            <div className="flex gap-3">
@@ -471,8 +505,9 @@ const ItemEditor = () => {
                       onChange={(e) => setFormData({...formData, type: e.target.value as ItemType})}
                       className="w-full bg-white border border-stone-200 rounded-xl px-4 py-3.5 outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100 transition-all text-sm font-medium text-stone-800 shadow-sm appearance-none"
                     >
-                      <option value={ItemType.PROMPT}>Промт</option>
-                      <option value={ItemType.ASSISTANT}>Ассистент</option>
+                      <option value={ItemType.PROMPT}>Промт (Один запрос)</option>
+                      <option value={ItemType.SEQUENCE}>Связка (Несколько шагов)</option>
+                      <option value={ItemType.ASSISTANT}>Ассистент (Настройка GPT)</option>
                     </select>
                     <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none text-stone-400">
                       <ChevronRight size={16} className="rotate-90" />
@@ -493,25 +528,77 @@ const ItemEditor = () => {
               Детали контента
             </h3>
             <TextArea 
-              label="Инструкция по использованию (Пошаговый текст)" 
+              label="Инструкция по использованию (Общая)" 
               value={formData.instructions || ''} 
               rows={4}
               onChange={(e: any) => setFormData({...formData, instructions: e.target.value})} 
             />
-             <div className="mb-2">
-               <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 ml-1">
-                 {isAssistant ? "Custom Instructions (Системный промт)" : "Текст промта"}
-               </label>
-               <textarea 
-                  rows={16}
-                  className="w-full bg-stone-900 border border-stone-800 rounded-xl px-6 py-6 transition-all outline-none text-stone-200 font-mono text-sm leading-relaxed shadow-inner resize-y focus:ring-4 focus:ring-stone-800/50"
-                  value={formData.content || ''}
-                  onChange={(e: any) => setFormData({...formData, content: e.target.value})} 
-               />
-             </div>
+             
+             {!isSequence && (
+               <div className="mb-2">
+                 <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 ml-1">
+                   {isAssistant ? "Custom Instructions (Системный промт)" : "Текст промта"}
+                 </label>
+                 <textarea 
+                    rows={16}
+                    className="w-full bg-stone-900 border border-stone-800 rounded-xl px-6 py-6 transition-all outline-none text-stone-200 font-mono text-sm leading-relaxed shadow-inner resize-y focus:ring-4 focus:ring-stone-800/50"
+                    value={formData.content || ''}
+                    onChange={(e: any) => setFormData({...formData, content: e.target.value})} 
+                 />
+               </div>
+             )}
           </Card>
 
-          {/* Sub-prompts handling for Assistant could go here, keeping it simple for now */}
+          {/* Dynamic List for Sequences (and Assistants) */}
+          {(isSequence || isAssistant) && (
+            <div className="border-t border-stone-200 pt-8 mt-2">
+              <div className="flex items-center justify-between mb-6">
+                 <h3 className="text-xl font-bold text-stone-800">
+                   {isSequence ? 'Шаги связки (Цепочка)' : 'Дополнительные промты'}
+                 </h3>
+                 <Button variant="secondary" className="!py-2 !px-4 !text-xs" onClick={handleAddSubPrompt}>
+                   <Plus size={16} /> Добавить шаг
+                 </Button>
+              </div>
+
+              <div className="space-y-6">
+                 {(formData.subPrompts || []).map((sub, idx) => (
+                   <div key={idx} className="bg-white p-6 rounded-[2rem] border border-stone-200 shadow-sm relative group hover:border-orange-200 transition-all">
+                      <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-stone-100 rounded-l-[2rem] group-hover:bg-orange-400 transition-colors"></div>
+                      <div className="flex justify-between items-start mb-4 pl-2">
+                         <div className="flex items-center gap-3">
+                            <div className="w-6 h-6 rounded-full bg-stone-100 flex items-center justify-center text-stone-500 text-xs font-bold">
+                              {idx + 1}
+                            </div>
+                            <input 
+                              type="text" 
+                              className="bg-transparent font-bold text-stone-800 border-b border-transparent hover:border-stone-200 focus:border-orange-400 outline-none transition-all"
+                              value={sub.title}
+                              onChange={(e) => handleUpdateSubPrompt(idx, 'title', e.target.value)}
+                              placeholder="Название шага"
+                            />
+                         </div>
+                         <button onClick={() => handleDeleteSubPrompt(idx)} className="text-stone-300 hover:text-rose-500 transition-colors">
+                           <X size={18} />
+                         </button>
+                      </div>
+                      <textarea 
+                         rows={6}
+                         className="w-full bg-stone-50 border border-stone-100 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all text-sm font-mono text-stone-600 resize-y"
+                         value={sub.content}
+                         onChange={(e) => handleUpdateSubPrompt(idx, 'content', e.target.value)}
+                         placeholder="Текст промта для этого шага..."
+                      />
+                   </div>
+                 ))}
+                 {(formData.subPrompts || []).length === 0 && (
+                    <div className="text-center py-10 border-2 border-dashed border-stone-200 rounded-3xl text-stone-400">
+                       Добавьте шаги для этой цепочки
+                    </div>
+                 )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </Layout>

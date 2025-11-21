@@ -6,7 +6,7 @@ import Admin from './pages/Admin';
 import { 
   ArrowRight, FileText, Bot, Info, Sparkles, Heart, Search, ExternalLink, 
   Fingerprint, Brain, Target, Feather, Zap, LayoutTemplate, GraduationCap, 
-  MessageCircle, Rocket, Cpu, Palette, Briefcase, User
+  MessageCircle, Rocket, Cpu, Palette, Briefcase, User, Layers, ArrowDown
 } from 'lucide-react';
 import CopyButton from './components/CopyButton';
 import { ItemType } from './types';
@@ -55,7 +55,7 @@ const getSectionTheme = (title: string) => {
 };
 
 // --- Prompt Renderer Component ---
-const PromptRenderer = ({ content, isAssistant }: { content: string, isAssistant: boolean }) => {
+const PromptRenderer = ({ content, isAssistant, title }: { content: string, isAssistant: boolean, title?: string }) => {
   return (
     <div className="flex flex-col gap-6">
       {/* The Content Block */}
@@ -68,7 +68,7 @@ const PromptRenderer = ({ content, isAssistant }: { content: string, isAssistant
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6 border-b border-white/10 pb-6">
               <div>
                 <h3 className="text-lg font-bold text-stone-100 mb-1 flex items-center gap-3">
-                  {isAssistant ? 'System Instructions' : 'Текст промта'}
+                  {title || (isAssistant ? 'System Instructions' : 'Текст промта')}
                 </h3>
                 <p className="text-stone-500 text-xs font-medium">
                   {isAssistant ? 'Вставьте в настройки GPT' : 'Скопируйте и отправьте в чат'}
@@ -147,8 +147,10 @@ const HomePage = () => {
                     to={`/category/${category.id}/section/${section.id}/item/${item.id}`}
                     className="flex items-center p-4 bg-white/60 rounded-2xl hover:bg-white hover:shadow-md transition-all group"
                  >
-                    <div className={`p-3 rounded-xl mr-4 ${item.type === ItemType.ASSISTANT ? 'bg-rose-100 text-rose-500' : 'bg-orange-100 text-orange-500'}`}>
-                      {item.type === ItemType.ASSISTANT ? <Bot size={20} /> : <FileText size={20} />}
+                    <div className={`p-3 rounded-xl mr-4 ${
+                      item.type === ItemType.ASSISTANT ? 'bg-rose-100 text-rose-500' : (item.type === ItemType.SEQUENCE ? 'bg-violet-100 text-violet-500' : 'bg-orange-100 text-orange-500')
+                    }`}>
+                      {item.type === ItemType.ASSISTANT ? <Bot size={20} /> : (item.type === ItemType.SEQUENCE ? <Layers size={20} /> : <FileText size={20} />)}
                     </div>
                     <div>
                       <div className="font-bold text-stone-800 group-hover:text-orange-600 transition-colors">{item.title}</div>
@@ -180,8 +182,10 @@ const HomePage = () => {
                   className="bg-white/70 backdrop-blur-sm p-5 rounded-[2rem] border border-white/60 shadow-sm hover:shadow-soft hover:-translate-y-1 transition-all duration-300 group"
                 >
                   <div className="flex justify-between items-start mb-3">
-                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg ${item.type === ItemType.ASSISTANT ? 'bg-rose-100 text-rose-600' : 'bg-orange-100 text-orange-600'}`}>
-                      {item.type === ItemType.ASSISTANT ? 'Assistant' : 'Prompt'}
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg ${
+                      item.type === ItemType.ASSISTANT ? 'bg-rose-100 text-rose-600' : (item.type === ItemType.SEQUENCE ? 'bg-violet-100 text-violet-600' : 'bg-orange-100 text-orange-600')
+                    }`}>
+                      {item.type === ItemType.ASSISTANT ? 'Assistant' : (item.type === ItemType.SEQUENCE ? 'Chain' : 'Prompt')}
                     </span>
                     <ArrowRight size={16} className="text-stone-300 group-hover:text-orange-500 transition-colors" />
                   </div>
@@ -328,9 +332,11 @@ const SectionPage = () => {
               <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mr-6 transition-all duration-500 relative z-10 pointer-events-none ${
                 item.type === ItemType.ASSISTANT 
                   ? 'bg-rose-50 text-rose-500 group-hover:bg-rose-400 group-hover:text-white group-hover:shadow-lg group-hover:shadow-rose-200' 
-                  : 'bg-orange-50 text-orange-500 group-hover:bg-orange-400 group-hover:text-white group-hover:shadow-lg group-hover:shadow-orange-200'
+                  : (item.type === ItemType.SEQUENCE 
+                     ? 'bg-violet-50 text-violet-500 group-hover:bg-violet-400 group-hover:text-white group-hover:shadow-lg group-hover:shadow-violet-200'
+                     : 'bg-orange-50 text-orange-500 group-hover:bg-orange-400 group-hover:text-white group-hover:shadow-lg group-hover:shadow-orange-200')
               }`}>
-                {item.type === ItemType.ASSISTANT ? <Bot size={26} /> : <FileText size={26} />}
+                {item.type === ItemType.ASSISTANT ? <Bot size={26} /> : (item.type === ItemType.SEQUENCE ? <Layers size={26} /> : <FileText size={26} />)}
               </div>
               <div className="flex-1 min-w-0 relative z-10 pointer-events-none">
                 <h3 className="font-bold text-lg text-stone-800 mb-1 truncate group-hover:text-stone-900 transition-colors">{item.title}</h3>
@@ -401,6 +407,7 @@ const ItemDetail = () => {
   if (!category || !section || !item) return <Navigate to="/" />;
 
   const isAssistant = item.type === ItemType.ASSISTANT;
+  const isSequence = item.type === ItemType.SEQUENCE;
   const favorite = isFavorite(item.id);
 
   return (
@@ -420,10 +427,10 @@ const ItemDetail = () => {
              <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-wide shadow-sm border border-white/50 backdrop-blur-sm ${
               isAssistant 
                 ? 'bg-rose-50 text-rose-600' 
-                : 'bg-orange-50 text-orange-600'
+                : (isSequence ? 'bg-violet-50 text-violet-600' : 'bg-orange-50 text-orange-600')
              }`}>
-              {isAssistant ? <Bot size={16} /> : <FileText size={16} />}
-              {isAssistant ? 'GPT ASSISTANT' : 'PROMPT'}
+              {isAssistant ? <Bot size={16} /> : (isSequence ? <Layers size={16} /> : <FileText size={16} />)}
+              {isAssistant ? 'GPT ASSISTANT' : (isSequence ? 'SEQUENCE' : 'PROMPT')}
              </div>
 
              <button 
@@ -461,26 +468,55 @@ const ItemDetail = () => {
 
         {/* RIGHT COLUMN: The Prompt (Sticky) */}
         <div className="w-full lg:w-[60%] lg:sticky lg:top-32 animate-enter" style={{ animationDelay: '0.1s' }}>
-          <PromptRenderer content={item.content} isAssistant={isAssistant} />
-
-          {/* Sub-prompts for Assistants */}
-          {isAssistant && item.subPrompts && item.subPrompts.length > 0 && (
-            <div className="mt-8">
-              <h3 className="text-xl font-bold text-stone-800 mb-6 pl-2">Дополнительные промты</h3>
-              <div className="grid gap-4">
-                {item.subPrompts.map((sub, idx) => (
-                  <div key={idx} className="bg-white/80 backdrop-blur-md rounded-[1.5rem] p-6 hover:shadow-soft transition-all duration-300 border border-stone-100/50">
-                    <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
-                      <h4 className="font-bold text-stone-800 text-sm">{sub.title}</h4>
-                      <CopyButton text={sub.content} label="Копировать" className="scale-90" />
+          
+          {isSequence ? (
+            <div className="relative">
+              {/* Vertical connecting line */}
+              <div className="absolute left-8 top-6 bottom-6 w-0.5 bg-gradient-to-b from-orange-200 via-violet-200 to-transparent z-0" />
+              
+              {(item.subPrompts || []).map((sub, idx) => (
+                <div key={idx} className="relative z-10 mb-8 last:mb-0">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-16 h-16 rounded-2xl bg-white border-4 border-stone-50 shadow-lg flex items-center justify-center text-xl font-black text-stone-300">
+                      {idx + 1}
                     </div>
-                    <div className="font-mono text-xs text-stone-500 leading-relaxed p-4 bg-stone-50 rounded-xl border border-stone-100">
-                      {sub.content}
-                    </div>
+                    <div className="font-bold text-stone-800 text-lg">{sub.title}</div>
                   </div>
-                ))}
-              </div>
+                  <div className="pl-8">
+                     <PromptRenderer content={sub.content} isAssistant={false} title={sub.title} />
+                  </div>
+                  {idx < (item.subPrompts || []).length - 1 && (
+                     <div className="pl-8 my-4 flex justify-center">
+                       <ArrowDown size={24} className="text-stone-200 animate-bounce" />
+                     </div>
+                  )}
+                </div>
+              ))}
             </div>
+          ) : (
+            <>
+              <PromptRenderer content={item.content} isAssistant={isAssistant} />
+
+              {/* Sub-prompts for Assistants */}
+              {isAssistant && item.subPrompts && item.subPrompts.length > 0 && (
+                <div className="mt-8">
+                  <h3 className="text-xl font-bold text-stone-800 mb-6 pl-2">Дополнительные промты</h3>
+                  <div className="grid gap-4">
+                    {item.subPrompts.map((sub, idx) => (
+                      <div key={idx} className="bg-white/80 backdrop-blur-md rounded-[1.5rem] p-6 hover:shadow-soft transition-all duration-300 border border-stone-100/50">
+                        <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
+                          <h4 className="font-bold text-stone-800 text-sm">{sub.title}</h4>
+                          <CopyButton text={sub.content} label="Копировать" className="scale-90" />
+                        </div>
+                        <div className="font-mono text-xs text-stone-500 leading-relaxed p-4 bg-stone-50 rounded-xl border border-stone-100">
+                          {sub.content}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 

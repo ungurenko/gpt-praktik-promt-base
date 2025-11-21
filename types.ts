@@ -1,6 +1,7 @@
 export enum ItemType {
   PROMPT = 'prompt',
-  ASSISTANT = 'assistant'
+  ASSISTANT = 'assistant',
+  SEQUENCE = 'sequence'
 }
 
 export interface PromptItem {
@@ -10,7 +11,7 @@ export interface PromptItem {
   instructions: string; // "Инструкция по использованию"
   content: string; // The actual prompt text or Custom Instructions
   type: ItemType;
-  // For Assistants only
+  // For Assistants and Sequences
   subPrompts?: { title: string; content: string }[];
 }
 
