@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Category, Section, PromptItem, ItemType } from '../types';
 import { supabase } from '../supabaseClient';
@@ -165,18 +166,21 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // --- Write Operations (Now Sync with DB) ---
 
   const addCategory = async (category: Category) => {
-    const { error } = await supabase.from('categories').insert({
-      id: category.id,
-      title: category.title,
-      description: category.description,
-      theme: category.theme
-    });
-    if (!error) fetchData();
+    // Clean data: remove 'sections' before sending to DB
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { sections, ...dbData } = category;
+    const { error } = await supabase.from('categories').insert(dbData);
+    if (error) console.error("Supabase Error:", error);
+    else fetchData();
   };
 
   const updateCategory = async (id: string, data: Partial<Category>) => {
-    const { error } = await supabase.from('categories').update(data).eq('id', id);
-    if (!error) fetchData();
+    // Clean data: remove 'sections' before sending to DB
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { sections, ...dbData } = data;
+    const { error } = await supabase.from('categories').update(dbData).eq('id', id);
+    if (error) console.error("Supabase Error:", error);
+    else fetchData();
   };
 
   const deleteCategory = async (id: string) => {
@@ -185,19 +189,24 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const addSection = async (catId: string, section: Section) => {
+    // Clean data: remove 'items' before sending to DB
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { items, ...dbData } = section;
     const { error } = await supabase.from('sections').insert({
-      id: section.id,
-      category_id: catId,
-      title: section.title,
-      description: section.description,
-      instructions: section.instructions
+      ...dbData,
+      category_id: catId
     });
-    if (!error) fetchData();
+    if (error) console.error("Supabase Error:", error);
+    else fetchData();
   };
 
   const updateSection = async (catId: string, secId: string, data: Partial<Section>) => {
-    const { error } = await supabase.from('sections').update(data).eq('id', secId);
-    if (!error) fetchData();
+    // Clean data: remove 'items' before sending to DB
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { items, ...dbData } = data;
+    const { error } = await supabase.from('sections').update(dbData).eq('id', secId);
+    if (error) console.error("Supabase Error:", error);
+    else fetchData();
   };
 
   const deleteSection = async (catId: string, secId: string) => {

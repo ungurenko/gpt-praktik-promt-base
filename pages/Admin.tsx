@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import Layout from '../components/Layout';
-import { Plus, Trash2, Save, ArrowLeft, Folder, FileText, Bot, MoreHorizontal, X, Image as ImageIcon, Layout as LayoutIcon, Upload, ChevronRight, Layers, ArrowDown, GripVertical, Database } from 'lucide-react';
+import { Plus, Trash2, Save, ArrowLeft, Folder, FileText, Bot, MoreHorizontal, X, Image as ImageIcon, Layout as LayoutIcon, Upload, ChevronRight, Layers, ArrowDown, GripVertical, Database, Lock, LogOut, Check } from 'lucide-react';
 import { Category, Section, PromptItem, ItemType } from '../types';
 
-// ... (Input, TextArea, Button, Card components remain exactly the same) ...
+// --- Clean Tech UI Components ---
+
 const Input = ({ label, ...props }: any) => (
   <div className="mb-5">
     <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 ml-1">{label}</label>
@@ -48,9 +49,66 @@ const Card = ({ children, className = "" }: { children?: React.ReactNode, classN
   </div>
 );
 
+// --- Admin Login Screen ---
+
+const AdminLogin = ({ onLogin }: { onLogin: (status: boolean) => void }) => {
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === 'neodark') {
+      onLogin(true);
+    } else {
+      setError(true);
+      setPassword('');
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 bg-stone-50/50">
+      <div className="w-full max-w-md animate-enter">
+        <div className="bg-white/80 backdrop-blur-2xl p-10 rounded-[2.5rem] shadow-2xl shadow-stone-200 border border-white">
+           <div className="text-center mb-8">
+             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-stone-900 text-white mb-6 shadow-lg shadow-stone-300">
+               <Lock size={28} strokeWidth={2.5} />
+             </div>
+             <h1 className="text-2xl font-extrabold text-stone-900 mb-2">Доступ запрещен</h1>
+             <p className="text-stone-500 text-sm font-medium">Введите пароль администратора для входа</p>
+           </div>
+
+           <form onSubmit={handleSubmit}>
+             <div className="mb-6 relative">
+               <input 
+                 type="password" 
+                 autoFocus
+                 className={`w-full bg-stone-50 border ${error ? 'border-rose-300 bg-rose-50 text-rose-900' : 'border-stone-200'} focus:border-orange-400 focus:ring-4 focus:ring-orange-100 rounded-xl px-4 py-4 transition-all outline-none text-stone-800 placeholder-stone-400 text-center text-lg font-bold tracking-widest shadow-inner`}
+                 placeholder="••••••••"
+                 value={password}
+                 onChange={(e) => { setPassword(e.target.value); setError(false); }}
+               />
+               {error && (
+                 <p className="absolute -bottom-6 left-0 right-0 text-center text-xs font-bold text-rose-500 animate-pulse">Неверный пароль</p>
+               )}
+             </div>
+             <Button className="w-full py-4 !text-base !rounded-2xl" onClick={handleSubmit}>
+               Войти в систему
+             </Button>
+           </form>
+        </div>
+        <div className="text-center mt-8">
+           <Link to="/" className="text-stone-400 text-xs font-bold uppercase tracking-widest hover:text-stone-600 transition-colors">
+             Вернуться на главную
+           </Link>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- Admin Dashboard (Categories List) ---
 
-const AdminDashboard = () => {
+const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
   const { categories, addCategory, deleteCategory, loading, uploadInitialData } = useData();
   const navigate = useNavigate();
 
@@ -90,6 +148,9 @@ const AdminDashboard = () => {
           <p className="text-lg text-stone-500 font-light">Управляйте структурой и контентом базы знаний</p>
         </div>
         <div className="flex gap-3">
+            <Button variant="ghost" onClick={onLogout} title="Выйти">
+                <LogOut size={18} />
+            </Button>
             <Button variant="secondary" onClick={handleMigration} title="Загрузить исходные данные в БД">
                 <Database size={18} />
                 Миграция
@@ -104,8 +165,8 @@ const AdminDashboard = () => {
       <div className="grid gap-4 animate-enter" style={{ animationDelay: '0.1s' }}>
         {categories.map((cat, idx) => (
           <div key={cat.id} className="group flex items-center bg-white p-5 pr-6 rounded-[2rem] border border-stone-100 hover:border-orange-100 hover:shadow-soft hover:-translate-y-1 transition-all duration-300">
-            <div className={`w-16 h-16 rounded-2xl mr-6 bg-stone-50 border border-stone-100 flex items-center justify-center theme-${cat.theme || 'orange'} transition-colors duration-300`}>
-               <div className={`w-4 h-4 rounded-full bg-current opacity-50 shadow-sm`}></div>
+            <div className={`w-16 h-16 rounded-2xl mr-6 flex items-center justify-center transition-colors duration-300 mesh-bg-${cat.theme || 'orange'}`}>
+               <div className={`w-4 h-4 rounded-full bg-white opacity-50 shadow-sm`}></div>
             </div>
             <div className="flex-1 py-1">
               <h3 className="font-bold text-stone-800 text-lg mb-1 group-hover:text-orange-600 transition-colors">{cat.title}</h3>
@@ -131,11 +192,6 @@ const AdminDashboard = () => {
     </Layout>
   );
 };
-
-// ... (CategoryEditor, SectionEditor, ItemEditor - same content as before, just ensuring they are present) ...
-// Since I cannot use "same as before" in the XML response effectively without rewriting it, 
-// I will assume the user keeps the rest of the file or I need to output the WHOLE file.
-// Given the constraints, I will output the FULL content of Admin.tsx to be safe.
 
 const CategoryEditor = () => {
   const { categoryId } = useParams();
@@ -168,20 +224,20 @@ const CategoryEditor = () => {
   };
 
   const themes = [
-    { id: 'orange', color: '#FF5500' },
-    { id: 'rose', color: '#F43F5E' },
-    { id: 'blue', color: '#3B82F6' },
-    { id: 'violet', color: '#8B5CF6' },
-    { id: 'emerald', color: '#10B981' },
-    { id: 'amber', color: '#F59E0B' },
+    { id: 'orange', label: 'Sunset', desc: 'Orange & Pink' },
+    { id: 'rose', label: 'Passion', desc: 'Red & Rose' },
+    { id: 'blue', label: 'Ocean', desc: 'Deep Blue' },
+    { id: 'violet', label: 'Cosmic', desc: 'Purple & Violet' },
+    { id: 'emerald', label: 'Nature', desc: 'Green & Teal' },
+    { id: 'amber', label: 'Luxury', desc: 'Gold & Dark' },
   ];
 
   return (
     <Layout breadcrumbs={[{ label: 'Dashboard', to: '/admin' }, { label: 'Редактирование категории' }]}>
       <div className="mb-10 flex items-center justify-between animate-enter">
         <div className="flex items-center gap-5">
-           <div className={`w-14 h-14 rounded-[1.2rem] flex items-center justify-center shadow-sm bg-gradient-to-br from-stone-50 to-white border border-stone-100`}>
-             <LayoutIcon size={28} className={`theme-${formData.theme || 'orange'} text-current`} />
+           <div className={`w-14 h-14 rounded-[1.2rem] flex items-center justify-center shadow-sm mesh-bg-${formData.theme || 'orange'}`}>
+             <LayoutIcon size={28} className="text-white" />
            </div>
            <div>
              <h1 className="text-3xl font-bold text-stone-900 tracking-tight leading-none mb-1">
@@ -215,25 +271,32 @@ const CategoryEditor = () => {
             />
             
             <div className="mb-2">
-              <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-3 ml-1">Акцент (Градиент)</label>
-              <div className="flex flex-wrap gap-3">
+              <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-3 ml-1">Фон карточки (Mesh Gradient)</label>
+              <div className="grid grid-cols-2 gap-3">
                 {themes.map((t) => (
                   <button
                     key={t.id}
                     onClick={() => setFormData({ ...formData, theme: t.id as any })}
-                    className={`w-11 h-11 rounded-2xl border-2 transition-all relative shadow-sm ${
+                    className={`relative group rounded-2xl h-20 w-full overflow-hidden transition-all ${
                       (formData.theme || 'orange') === t.id
-                        ? 'border-stone-800 scale-105 ring-4 ring-stone-100' 
-                        : 'border-transparent hover:scale-105 hover:shadow-md'
+                        ? 'ring-4 ring-stone-800 shadow-xl transform scale-105 z-10' 
+                        : 'ring-1 ring-stone-200 hover:ring-orange-300 hover:scale-105'
                     }`}
-                    style={{ background: t.color }}
-                    title={t.id}
                   >
-                     {(formData.theme || 'orange') === t.id && (
-                       <div className="absolute inset-0 flex items-center justify-center">
-                         <div className="w-2.5 h-2.5 bg-white rounded-full shadow-sm" />
-                       </div>
-                     )}
+                     {/* The Gradient Preview */}
+                     <div className={`absolute inset-0 mesh-bg-${t.id}`} />
+                     
+                     {/* Label */}
+                     <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/10">
+                        {(formData.theme || 'orange') === t.id && (
+                            <div className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center shadow-md mb-1">
+                                <Check size={14} strokeWidth={4} />
+                            </div>
+                        )}
+                        <span className="text-white text-[10px] font-bold uppercase tracking-widest shadow-black drop-shadow-md">
+                            {t.label}
+                        </span>
+                     </div>
                   </button>
                 ))}
               </div>
@@ -627,9 +690,29 @@ const ItemEditor = () => {
 
 
 const Admin = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('gpt_admin_auth') === 'true';
+  });
+
+  const handleLogin = (status: boolean) => {
+    setIsAuthenticated(status);
+    if (status) {
+        localStorage.setItem('gpt_admin_auth', 'true');
+    }
+  };
+
+  const handleLogout = () => {
+      setIsAuthenticated(false);
+      localStorage.removeItem('gpt_admin_auth');
+  }
+
+  if (!isAuthenticated) {
+    return <AdminLogin onLogin={handleLogin} />;
+  }
+
   return (
     <Routes>
-      <Route path="/" element={<AdminDashboard />} />
+      <Route path="/" element={<AdminDashboard onLogout={handleLogout} />} />
       <Route path="/category/:categoryId" element={<CategoryEditor />} />
       <Route path="/category/:categoryId/section/:sectionId" element={<SectionEditor />} />
       <Route path="/category/:categoryId/section/:sectionId/item/:itemId" element={<ItemEditor />} />
