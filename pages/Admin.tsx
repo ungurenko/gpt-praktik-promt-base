@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import Layout from '../components/Layout';
-import { Plus, Trash2, Save, ArrowLeft, Folder, FileText, Bot, MoreHorizontal, X, Image as ImageIcon, Layout as LayoutIcon, Upload, ChevronRight, Layers, ArrowDown, GripVertical } from 'lucide-react';
+import { Plus, Trash2, Save, ArrowLeft, Folder, FileText, Bot, MoreHorizontal, X, Image as ImageIcon, Layout as LayoutIcon, Upload, ChevronRight, Layers, ArrowDown, GripVertical, Database } from 'lucide-react';
 import { Category, Section, PromptItem, ItemType } from '../types';
 
-// --- Clean Tech UI Components ---
-
+// ... (Input, TextArea, Button, Card components remain exactly the same) ...
 const Input = ({ label, ...props }: any) => (
   <div className="mb-5">
     <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 ml-1">{label}</label>
@@ -52,7 +51,7 @@ const Card = ({ children, className = "" }: { children?: React.ReactNode, classN
 // --- Admin Dashboard (Categories List) ---
 
 const AdminDashboard = () => {
-  const { categories, addCategory, deleteCategory } = useData();
+  const { categories, addCategory, deleteCategory, loading, uploadInitialData } = useData();
   const navigate = useNavigate();
 
   const handleCreate = () => {
@@ -67,6 +66,22 @@ const AdminDashboard = () => {
     navigate(`/admin/category/${newId}`);
   };
 
+  const handleMigration = async () => {
+    if(confirm('ВНИМАНИЕ: Это полностью перезапишет базу данных в Supabase данными из файла data.ts. Вы уверены?')) {
+        await uploadInitialData();
+    }
+  }
+
+  if (loading) {
+    return (
+        <Layout>
+            <div className="flex items-center justify-center h-[60vh]">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+            </div>
+        </Layout>
+    )
+  }
+
   return (
     <Layout breadcrumbs={[{ label: 'Dashboard' }]}>
       <div className="flex justify-between items-end mb-12 animate-enter">
@@ -74,10 +89,16 @@ const AdminDashboard = () => {
           <h1 className="text-4xl font-extrabold text-stone-900 mb-2 tracking-tight">Панель управления</h1>
           <p className="text-lg text-stone-500 font-light">Управляйте структурой и контентом базы знаний</p>
         </div>
-        <Button onClick={handleCreate}>
-          <Plus size={18} strokeWidth={3} />
-          Создать категорию
-        </Button>
+        <div className="flex gap-3">
+            <Button variant="secondary" onClick={handleMigration} title="Загрузить исходные данные в БД">
+                <Database size={18} />
+                Миграция
+            </Button>
+            <Button onClick={handleCreate}>
+            <Plus size={18} strokeWidth={3} />
+            Создать категорию
+            </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 animate-enter" style={{ animationDelay: '0.1s' }}>
@@ -111,7 +132,10 @@ const AdminDashboard = () => {
   );
 };
 
-// --- Category Editor ---
+// ... (CategoryEditor, SectionEditor, ItemEditor - same content as before, just ensuring they are present) ...
+// Since I cannot use "same as before" in the XML response effectively without rewriting it, 
+// I will assume the user keeps the rest of the file or I need to output the WHOLE file.
+// Given the constraints, I will output the FULL content of Admin.tsx to be safe.
 
 const CategoryEditor = () => {
   const { categoryId } = useParams();
@@ -127,14 +151,14 @@ const CategoryEditor = () => {
 
   if (!category) return <div>Category not found</div>;
 
-  const handleSave = () => {
-    updateCategory(category.id, formData);
+  const handleSave = async () => {
+    await updateCategory(category.id, formData);
     navigate('/admin');
   };
 
-  const handleAddSection = () => {
+  const handleAddSection = async () => {
     const newId = `sec-${Date.now()}`;
-    addSection(category.id, {
+    await addSection(category.id, {
       id: newId,
       title: 'Новый раздел',
       description: 'Описание раздела',
@@ -268,8 +292,6 @@ const CategoryEditor = () => {
   );
 };
 
-// --- Section Editor ---
-
 const SectionEditor = () => {
   const { categoryId, sectionId } = useParams();
   const { getSection, updateSection, addItem, deleteItem } = useData();
@@ -284,13 +306,13 @@ const SectionEditor = () => {
 
   if (!section) return <div>Section not found</div>;
 
-  const handleSave = () => {
-    updateSection(categoryId!, sectionId!, formData);
+  const handleSave = async () => {
+    await updateSection(categoryId!, sectionId!, formData);
   };
 
-  const handleAddItem = (type: ItemType) => {
+  const handleAddItem = async (type: ItemType) => {
     const newId = `item-${Date.now()}`;
-    addItem(categoryId!, sectionId!, {
+    await addItem(categoryId!, sectionId!, {
       id: newId,
       title: type === ItemType.SEQUENCE ? 'Новая связка' : (type === ItemType.ASSISTANT ? 'Новый ассистент' : 'Новый промт'),
       description: 'Краткое описание',
@@ -412,8 +434,6 @@ const SectionEditor = () => {
   );
 };
 
-// --- Item Editor ---
-
 const ItemEditor = () => {
   const { categoryId, sectionId, itemId } = useParams();
   const { getItem, updateItem } = useData();
@@ -428,8 +448,8 @@ const ItemEditor = () => {
 
   if (!item) return <div>Item not found</div>;
 
-  const handleSave = () => {
-    updateItem(categoryId!, sectionId!, itemId!, formData);
+  const handleSave = async () => {
+    await updateItem(categoryId!, sectionId!, itemId!, formData);
     navigate(`/admin/category/${categoryId}/section/${sectionId}`);
   };
 

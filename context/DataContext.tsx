@@ -1,27 +1,29 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Category, Section, PromptItem, ItemType } from '../types';
+import { supabase } from '../supabaseClient';
 import { CATEGORIES as INITIAL_DATA } from '../data';
 
 interface DataContextType {
   categories: Category[];
+  loading: boolean;
   // Read
   getCategory: (id: string) => Category | undefined;
   getSection: (catId: string, secId: string) => Section | undefined;
   getItem: (catId: string, secId: string, itemId: string) => PromptItem | undefined;
   // Write - Category
-  addCategory: (category: Category) => void;
-  updateCategory: (id: string, data: Partial<Category>) => void;
-  deleteCategory: (id: string) => void;
+  addCategory: (category: Category) => Promise<void>;
+  updateCategory: (id: string, data: Partial<Category>) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
   // Write - Section
-  addSection: (catId: string, section: Section) => void;
-  updateSection: (catId: string, secId: string, data: Partial<Section>) => void;
-  deleteSection: (catId: string, secId: string) => void;
+  addSection: (catId: string, section: Section) => Promise<void>;
+  updateSection: (catId: string, secId: string, data: Partial<Section>) => Promise<void>;
+  deleteSection: (catId: string, secId: string) => Promise<void>;
   // Write - Item
-  addItem: (catId: string, secId: string, item: PromptItem) => void;
-  updateItem: (catId: string, secId: string, itemId: string, data: Partial<PromptItem>) => void;
-  deleteItem: (catId: string, secId: string, itemId: string) => void;
+  addItem: (catId: string, secId: string, item: PromptItem) => Promise<void>;
+  updateItem: (catId: string, secId: string, itemId: string, data: Partial<PromptItem>) => Promise<void>;
+  deleteItem: (catId: string, secId: string, itemId: string) => Promise<void>;
   // Favorites
-  favorites: string[]; // Array of item IDs
+  favorites: string[];
   toggleFavorite: (itemId: string) => void;
   isFavorite: (itemId: string) => boolean;
   getFavoriteItems: () => { item: PromptItem, category: Category, section: Section }[];
@@ -29,21 +31,17 @@ interface DataContextType {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   searchResults: { item: PromptItem, category: Category, section: Section }[];
+  // Migration Helper
+  uploadInitialData: () => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [categories, setCategories] = useState<Category[]>(() => {
-    try {
-      const saved = localStorage.getItem('gpt-practicum-data');
-      return saved ? JSON.parse(saved) : INITIAL_DATA;
-    } catch (e) {
-      console.error("Failed to parse data from local storage", e);
-      return INITIAL_DATA;
-    }
-  });
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  // --- Favorites (Keep in LocalStorage for user preference) ---
   const [favorites, setFavorites] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('gpt-practicum-favorites');
@@ -55,15 +53,191 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [searchQuery, setSearchQuery] = useState('');
 
+  // --- Fetch Data from Supabase ---
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // Fetch Categories
+      const { data: catsData, error: catsError } = await supabase
+        .from('categories')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (catsError) throw catsError;
+      if (!catsData) return;
+
+      // Fetch Sections
+      const { data: secsData, error: secsError } = await supabase
+        .from('sections')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (secsError) throw secsError;
+
+      // Fetch Items
+      const { data: itemsData, error: itemsError } = await supabase
+        .from('items')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (itemsError) throw itemsError;
+
+      // Reconstruct Hierarchy
+      const fullCategories: Category[] = catsData.map((cat: any) => {
+        const catSections = secsData
+          ?.filter((s: any) => s.category_id === cat.id)
+          .map((sec: any) => {
+            const secItems = itemsData
+              ?.filter((i: any) => i.section_id === sec.id)
+              .map((item: any) => ({
+                ...item,
+                subPrompts: item.sub_prompts // Map DB column back to camelCase
+              })) || [];
+            
+            return { ...sec, items: secItems };
+          }) || [];
+          
+        return { ...cat, sections: catSections };
+      });
+
+      setCategories(fullCategories);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    localStorage.setItem('gpt-practicum-data', JSON.stringify(categories));
-  }, [categories]);
+    fetchData();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('gpt-practicum-favorites', JSON.stringify(favorites));
   }, [favorites]);
 
-  // Favorites Logic
+  // --- Migration Tool (One time use) ---
+  const uploadInitialData = async () => {
+    // 1. Clear existing
+    await supabase.from('items').delete().neq('id', '0');
+    await supabase.from('sections').delete().neq('id', '0');
+    await supabase.from('categories').delete().neq('id', '0');
+
+    for (const cat of INITIAL_DATA) {
+      // Insert Category
+      await supabase.from('categories').insert({
+        id: cat.id,
+        title: cat.title,
+        description: cat.description,
+        theme: cat.theme
+      });
+
+      for (const sec of cat.sections) {
+        // Insert Section
+        await supabase.from('sections').insert({
+          id: sec.id,
+          category_id: cat.id,
+          title: sec.title,
+          description: sec.description,
+          instructions: sec.instructions
+        });
+
+        for (const item of sec.items) {
+          // Insert Item
+          await supabase.from('items').insert({
+            id: item.id,
+            section_id: sec.id,
+            title: item.title,
+            description: item.description,
+            instructions: item.instructions,
+            content: item.content,
+            type: item.type,
+            sub_prompts: item.subPrompts // JSONB
+          });
+        }
+      }
+    }
+    await fetchData();
+    alert('Data uploaded to Supabase!');
+  };
+
+
+  // --- Write Operations (Now Sync with DB) ---
+
+  const addCategory = async (category: Category) => {
+    const { error } = await supabase.from('categories').insert({
+      id: category.id,
+      title: category.title,
+      description: category.description,
+      theme: category.theme
+    });
+    if (!error) fetchData();
+  };
+
+  const updateCategory = async (id: string, data: Partial<Category>) => {
+    const { error } = await supabase.from('categories').update(data).eq('id', id);
+    if (!error) fetchData();
+  };
+
+  const deleteCategory = async (id: string) => {
+    const { error } = await supabase.from('categories').delete().eq('id', id);
+    if (!error) fetchData();
+  };
+
+  const addSection = async (catId: string, section: Section) => {
+    const { error } = await supabase.from('sections').insert({
+      id: section.id,
+      category_id: catId,
+      title: section.title,
+      description: section.description,
+      instructions: section.instructions
+    });
+    if (!error) fetchData();
+  };
+
+  const updateSection = async (catId: string, secId: string, data: Partial<Section>) => {
+    const { error } = await supabase.from('sections').update(data).eq('id', secId);
+    if (!error) fetchData();
+  };
+
+  const deleteSection = async (catId: string, secId: string) => {
+    const { error } = await supabase.from('sections').delete().eq('id', secId);
+    if (!error) fetchData();
+  };
+
+  const addItem = async (catId: string, secId: string, item: PromptItem) => {
+    const { error } = await supabase.from('items').insert({
+      id: item.id,
+      section_id: secId,
+      title: item.title,
+      description: item.description,
+      instructions: item.instructions,
+      content: item.content,
+      type: item.type,
+      sub_prompts: item.subPrompts
+    });
+    if (!error) fetchData();
+  };
+
+  const updateItem = async (catId: string, secId: string, itemId: string, data: Partial<PromptItem>) => {
+    // Need to map subPrompts to sub_prompts for DB
+    const dbData: any = { ...data };
+    if (data.subPrompts) {
+      dbData.sub_prompts = data.subPrompts;
+      delete dbData.subPrompts;
+    }
+
+    const { error } = await supabase.from('items').update(dbData).eq('id', itemId);
+    if (!error) fetchData();
+  };
+
+  const deleteItem = async (catId: string, secId: string, itemId: string) => {
+    const { error } = await supabase.from('items').delete().eq('id', itemId);
+    if (!error) fetchData();
+  };
+
+
+  // --- Helpers (Same as before) ---
   const toggleFavorite = (itemId: string) => {
     setFavorites(prev => 
       prev.includes(itemId) ? prev.filter(id => id !== itemId) : [...prev, itemId]
@@ -72,7 +246,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const isFavorite = (itemId: string) => favorites.includes(itemId);
 
-  // Helper to flatten structure for search and favorites
   const getAllItemsWithContext = () => {
     const results: { item: PromptItem, category: Category, section: Section }[] = [];
     categories.forEach(cat => {
@@ -100,116 +273,26 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   }, [categories, searchQuery]);
 
-
-  // Read Helpers
   const getCategory = (id: string) => categories.find(c => c.id === id);
-  
   const getSection = (catId: string, secId: string) => {
     const cat = getCategory(catId);
     return cat?.sections.find(s => s.id === secId);
   };
-
   const getItem = (catId: string, secId: string, itemId: string) => {
     const sec = getSection(catId, secId);
     return sec?.items.find(i => i.id === itemId);
   };
 
-  // Write - Category
-  const addCategory = (category: Category) => {
-    setCategories([...categories, category]);
-  };
-
-  const updateCategory = (id: string, data: Partial<Category>) => {
-    setCategories(categories.map(c => c.id === id ? { ...c, ...data } : c));
-  };
-
-  const deleteCategory = (id: string) => {
-    setCategories(categories.filter(c => c.id !== id));
-  };
-
-  // Write - Section
-  const addSection = (catId: string, section: Section) => {
-    setCategories(categories.map(c => {
-      if (c.id !== catId) return c;
-      return { ...c, sections: [...c.sections, section] };
-    }));
-  };
-
-  const updateSection = (catId: string, secId: string, data: Partial<Section>) => {
-    setCategories(categories.map(c => {
-      if (c.id !== catId) return c;
-      return {
-        ...c,
-        sections: c.sections.map(s => s.id === secId ? { ...s, ...data } : s)
-      };
-    }));
-  };
-
-  const deleteSection = (catId: string, secId: string) => {
-    setCategories(categories.map(c => {
-      if (c.id !== catId) return c;
-      return {
-        ...c,
-        sections: c.sections.filter(s => s.id !== secId)
-      };
-    }));
-  };
-
-  // Write - Item
-  const addItem = (catId: string, secId: string, item: PromptItem) => {
-    setCategories(categories.map(c => {
-      if (c.id !== catId) return c;
-      return {
-        ...c,
-        sections: c.sections.map(s => {
-          if (s.id !== secId) return s;
-          return { ...s, items: [...s.items, item] };
-        })
-      };
-    }));
-  };
-
-  const updateItem = (catId: string, secId: string, itemId: string, data: Partial<PromptItem>) => {
-    setCategories(categories.map(c => {
-      if (c.id !== catId) return c;
-      return {
-        ...c,
-        sections: c.sections.map(s => {
-          if (s.id !== secId) return s;
-          return {
-            ...s,
-            items: s.items.map(i => i.id === itemId ? { ...i, ...data } : i)
-          };
-        })
-      };
-    }));
-  };
-
-  const deleteItem = (catId: string, secId: string, itemId: string) => {
-    setCategories(categories.map(c => {
-      if (c.id !== catId) return c;
-      return {
-        ...c,
-        sections: c.sections.map(s => {
-          if (s.id !== secId) return s;
-          return {
-            ...s,
-            items: s.items.filter(i => i.id !== itemId)
-          };
-        })
-      };
-    }));
-  };
-
   return (
     <DataContext.Provider value={{
-      categories,
+      categories, loading,
       getCategory, getSection, getItem,
       addCategory, updateCategory, deleteCategory,
       addSection, updateSection, deleteSection,
       addItem, updateItem, deleteItem,
       favorites, toggleFavorite, isFavorite, getFavoriteItems,
-      searchQuery, setSearchQuery, searchResults
+      searchQuery, setSearchQuery, searchResults,
+      uploadInitialData
     }}>
       {children}
     </DataContext.Provider>
