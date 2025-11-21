@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>База промтов GPT-ПРАКТИК</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+      /* --- CSS Variables System (The Engine) --- */
+      :root {
+        /* Light Mode (Default) */
+        --bg-page-rgb: 253 251 247;      /* #FDFBF7 (Cream) */
+        --bg-card-rgb: 255 255 255;      /* #FFFFFF */
+        --bg-card-hover-rgb: 255 255 255; 
+        
+        --text-main-rgb: 17 17 17;       /* #111111 (Clean Tech Black) */
+        --text-secondary-rgb: 102 102 102; /* #666666 (Clean Tech Grey) */
+        --text-muted-rgb: 168 162 158;   /* #a8a29e (Stone 400) */
+        
+        --border-color-rgb: 229 229 229; /* #E5E5E5 (Subtle Border) */
+        --shadow-color: rgba(0, 0, 0, 0.05);
+        
+        --mesh-opacity: 0.8;
+      }
+
+      [data-theme="dark"] {
+        /* Dark Mode (Deep Tech) */
+        --bg-page-rgb: 18 18 18;         /* #121212 (Deep Gray - Premium) */
+        --bg-card-rgb: 30 30 30;         /* #1E1E1E (Elevated Surface) */
+        --bg-card-hover-rgb: 40 40 40;   /* #282828 */
+
+        --text-main-rgb: 237 237 237;    /* #EDEDED (Soft White) */
+        --text-secondary-rgb: 161 161 170; /* #A1A1AA (Zinc 400) */
+        --text-muted-rgb: 113 113 122;   /* #71717A (Zinc 500) */
+
+        --border-color-rgb: 51 51 51;    /* #333333 */
+        --shadow-color: rgba(0, 0, 0, 0.5);
+        
+        --mesh-opacity: 0.15;
+      }
+
+      /* Apply Background */
+      body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background-color: rgb(var(--bg-page-rgb));
+        color: rgb(var(--text-main-rgb));
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+      
+      /* Update Mesh Gradient to respect theme */
+      .bg-mesh {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -1;
+        background: 
+          radial-gradient(at 0% 0%, rgba(255, 228, 230, 0.4) 0px, transparent 50%), /* Rose */
+          radial-gradient(at 100% 0%, rgba(254, 215, 170, 0.3) 0px, transparent 50%), /* Orange */
+          radial-gradient(at 100% 100%, rgba(231, 229, 228, 0.5) 0px, transparent 50%), /* Stone */
+          radial-gradient(at 0% 100%, rgba(255, 241, 242, 0.5) 0px, transparent 50%); /* Light Rose */
+        filter: blur(60px);
+        opacity: var(--mesh-opacity);
+        transition: opacity 0.5s ease;
+      }
+
+      /* --- Clean Tech Card System --- */
+      
+      .clean-card {
+        background-color: rgb(var(--bg-card-rgb));
+        border: 1px solid rgba(229, 229, 229, 0.8); /* Light subtle border */
+        box-shadow: 0 4px 20px var(--shadow-color);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        isolation: isolate; /* Creates a new stacking context */
+      }
+
+      [data-theme="dark"] .clean-card {
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+
+      /* The Brand Glow (Magic Blob) - Base Styles */
+      .clean-card::before {
+        content: '';
+        position: absolute;
+        width: 350px;
+        height: 350px;
+        background: radial-gradient(circle, rgba(255, 85, 0, 0.15) 0%, transparent 70%); /* Default */
+        filter: blur(60px);
+        border-radius: 50%;
+        z-index: -1; /* Behind text */
+        opacity: 0.6;
+        transition: opacity 0.4s ease, transform 0.6s ease, background 0.4s ease;
+        pointer-events: none;
+      }
+
+      /* Theme Variants - Color Overrides */
+      .theme-orange::before { background: radial-gradient(circle, rgba(255, 85, 0, 0.15) 0%, transparent 70%); }
+      .theme-rose::before { background: radial-gradient(circle, rgba(244, 63, 94, 0.15) 0%, transparent 70%); }
+      .theme-blue::before { background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%); }
+      .theme-violet::before { background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%); }
+      .theme-emerald::before { background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%); }
+      .theme-amber::before { background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, transparent 70%); }
+
+      /* Hover Border Colors */
+      .clean-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1); 
+      }
+
+      .theme-orange:hover { border-color: rgba(255, 85, 0, 0.3); }
+      .theme-rose:hover { border-color: rgba(244, 63, 94, 0.3); }
+      .theme-blue:hover { border-color: rgba(59, 130, 246, 0.3); }
+      .theme-violet:hover { border-color: rgba(139, 92, 246, 0.3); }
+      .theme-emerald:hover { border-color: rgba(16, 185, 129, 0.3); }
+      .theme-amber:hover { border-color: rgba(245, 158, 11, 0.3); }
+      
+      .clean-card:hover::before {
+        opacity: 1;
+        transform: scale(1.1);
+      }
+
+      /* Glow Positioning Variations (Can be mixed with themes) */
+      .card-glow-0::before { top: -100px; right: -100px; }
+      .card-glow-1::before { bottom: -100px; right: -80px; }
+      .card-glow-2::before { top: 50%; right: -150px; transform: translateY(-50%); }
+      .card-glow-3::before { top: -100px; left: -50px; }
+      .card-glow-4::before { bottom: -80px; left: 10%; }
+
+      /* --- Transitions for Theme Switching --- */
+      *, *::before, *::after {
+        transition-property: background-color, border-color, color, fill, stroke;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 200ms;
+      }
+
+      /* Soft Animations */
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+
+      @keyframes scaleIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+      }
+
+      .animate-enter {
+        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        opacity: 0;
+      }
+      
+      .animate-scale-in {
+        animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        opacity: 0;
+      }
+
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(168, 162, 158, 0.3);
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover { background: rgba(168, 162, 158, 0.5); }
+    </style>
+
+    <script>
+      // Prevent Flash of Wrong Theme
+      (function() {
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+          document.documentElement.removeAttribute('data-theme');
+        }
+      })();
+
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            colors: {
+              white: 'rgb(var(--bg-card-rgb) / <alpha-value>)', 
+              stone: {
+                50: 'rgb(var(--bg-page-rgb) / <alpha-value>)',
+                100: 'rgb(var(--border-color-rgb) / <alpha-value>)',
+                200: 'rgb(var(--border-color-rgb) / <alpha-value>)',
+                300: 'rgb(var(--text-muted-rgb) / <alpha-value>)',
+                400: 'rgb(var(--text-muted-rgb) / <alpha-value>)',
+                500: 'rgb(var(--text-secondary-rgb) / <alpha-value>)',
+                600: 'rgb(var(--text-secondary-rgb) / <alpha-value>)',
+                800: 'rgb(var(--text-main-rgb) / <alpha-value>)',
+                900: 'rgb(var(--text-main-rgb) / <alpha-value>)',
+              },
+              orange: {
+                50: 'rgba(255, 85, 0, 0.1)', 
+                500: '#FF5500', 
+                600: '#E04800',
+              }
+            },
+            borderRadius: {
+              '4xl': '2.5rem',
+              '5xl': '3rem',
+            },
+            boxShadow: {
+              'glass': '0 8px 32px 0 var(--shadow-color)', 
+              'soft': '0 20px 40px -15px var(--shadow-color)',
+              'glow': '0 0 40px rgba(251, 146, 60, 0.15)',
+            },
+            animation: {
+              'float': 'float 6s ease-in-out infinite',
+              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            },
+            keyframes: {
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-10px)' },
+              }
+            }
+          },
+        },
+      }
+    </script>
+    <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^6.28.0",
+    "driver.js": "https://aistudiocdn.com/driver.js@^1.3.6"
+  }
+}
+</script>
+</head>
+  <body class="h-screen overflow-hidden selection:bg-orange-100 selection:text-orange-800">
+    <div class="bg-mesh"></div>
+    <div id="root" class="h-full flex flex-col relative z-10"></div>
+  </body>
+</html>
