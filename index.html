@@ -29,16 +29,16 @@
       :root.dark, [data-theme="dark"] {
         /* Dark Mode */
         --bg-page-rgb: 18 18 18;         
-        --bg-card-rgb: 30 30 30;         
+        --bg-card-rgb: 30 30 30; /* #1E1E1E */        
 
-        --text-main-rgb: 237 237 237;    
-        --text-secondary-rgb: 161 161 170; 
+        --text-main-rgb: 255 255 255;    
+        --text-secondary-rgb: 160 160 160; 
         --text-muted-rgb: 113 113 122;   
 
-        --border-color-rgb: 51 51 51;    
+        --border-color-rgb: 42 42 42; /* #2A2A2A */  
         --shadow-color: rgba(0, 0, 0, 0.3);
         
-        --mesh-opacity: 0.15;
+        --mesh-opacity: 0.1; /* Reduced for better contrast */
       }
 
       /* Apply Background - Removed global transition on everything to speed up paint */
@@ -90,7 +90,7 @@
       }
       
       :root.dark .bg-noise, [data-theme="dark"] .bg-noise {
-        opacity: 0.12;
+        opacity: 0.05;
       }
 
       /* --- Clean Tech Card System --- */
@@ -109,8 +109,11 @@
         transform: translateZ(0);
       }
 
+      /* Dark Mode Card Styles */
       :root.dark .clean-card, [data-theme="dark"] .clean-card {
-        border-color: rgba(255, 255, 255, 0.1);
+        background-color: #1E1E1E !important;
+        border: 1px solid #2A2A2A !important;
+        box-shadow: none;
       }
 
       /* The Brand Glow (Magic Blob) */
@@ -142,6 +145,13 @@
       .clean-card:hover {
         transform: translateY(-3px);
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08); 
+      }
+
+      /* Dark Mode Hover Glow */
+      :root.dark .clean-card:hover, [data-theme="dark"] .clean-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0 0 1px rgba(255, 107, 53, 0.3), 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+        border-color: rgba(255, 107, 53, 0.3) !important;
       }
 
       .theme-orange:hover { border-color: rgba(255, 85, 0, 0.3); }
@@ -219,7 +229,7 @@
               mono: ['JetBrains Mono', 'monospace'],
             },
             colors: {
-              white: 'rgb(var(--bg-card-rgb) / <alpha-value>)', 
+              // Removed overriding of 'white' to fix text color issues in dark mode
               stone: {
                 50: 'rgb(var(--bg-page-rgb) / <alpha-value>)',
                 100: 'rgb(var(--border-color-rgb) / <alpha-value>)',

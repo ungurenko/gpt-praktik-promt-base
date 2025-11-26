@@ -61,9 +61,9 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs = [] }) => {
       <div className={`flex-none flex items-center ${isCollapsed ? 'justify-center p-4' : 'p-6'}`}>
         <Link to="/" className={`flex items-center gap-3 hover:opacity-70 transition-opacity group ${isCollapsed ? 'justify-center' : ''}`}>
           <div className={`w-10 h-10 flex items-center justify-center rounded-2xl shadow-lg transition-all duration-300 ${isAdmin ? 'bg-rose-400 shadow-rose-200' : 'bg-stone-800 shadow-stone-200'} group-hover:scale-105 flex-shrink-0`}>
-            <span className="font-bold text-sm text-white">GP</span>
+            <span className={`font-bold text-sm ${isAdmin ? 'text-white' : 'text-white dark:text-black'}`}>GP</span>
           </div>
-          {!isCollapsed && <span className="font-bold text-lg tracking-tight text-stone-800 dark:text-stone-200 whitespace-nowrap transition-opacity">GPT-ПРАКТИК</span>}
+          {!isCollapsed && <span className="font-bold text-lg tracking-tight text-stone-900 dark:text-white whitespace-nowrap transition-opacity">GPT-ПРАКТИК</span>}
         </Link>
       </div>
 
@@ -85,7 +85,7 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs = [] }) => {
               ${isCollapsed ? 'justify-center' : ''}
               ${isActive 
                 ? 'bg-white shadow-sm text-stone-900 dark:bg-white/10 dark:text-white' 
-                : 'text-stone-500 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-white/5 dark:hover:text-stone-200'
+                : 'text-stone-500 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-white/5 dark:hover:text-white'
               }
             `;
 
@@ -216,7 +216,7 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs = [] }) => {
                   <React.Fragment key={index}>
                     <ChevronRight size={16} className="text-stone-300 flex-shrink-0" />
                     {crumb.to ? (
-                      <Link to={crumb.to} className="hover:text-stone-900 dark:hover:text-stone-100 transition-colors truncate font-medium">
+                      <Link to={crumb.to} className="hover:text-stone-900 dark:hover:text-white transition-colors truncate font-medium">
                         {crumb.label}
                       </Link>
                     ) : (

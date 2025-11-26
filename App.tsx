@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { HashRouter, Routes, Route, Link, useParams, Navigate, useLocation } from 'react-router-dom';
 import { DataProvider, useData } from './context/DataContext';
@@ -74,7 +73,7 @@ const PageNav: React.FC<PageNavProps> = ({ prev, next }) => (
         <div className="flex items-center gap-2 text-stone-400 text-[10px] font-bold uppercase tracking-wider mb-1.5 group-hover:text-orange-500 transition-colors">
           <ArrowLeft size={14} /> {prev.label}
         </div>
-        <div className="text-lg font-bold text-stone-800 dark:text-stone-200 group-hover:text-stone-900 dark:group-hover:text-white transition-colors line-clamp-1">
+        <div className="text-lg font-bold text-stone-800 dark:text-white group-hover:text-stone-900 dark:group-hover:text-white transition-colors line-clamp-1">
           {prev.title}
         </div>
       </Link>
@@ -88,7 +87,7 @@ const PageNav: React.FC<PageNavProps> = ({ prev, next }) => (
         <div className="flex items-center gap-2 text-stone-400 text-[10px] font-bold uppercase tracking-wider mb-1.5 group-hover:text-orange-500 transition-colors">
           {next.label} <ArrowRight size={14} />
         </div>
-        <div className="text-lg font-bold text-stone-800 dark:text-stone-200 group-hover:text-stone-900 dark:group-hover:text-white transition-colors line-clamp-1">
+        <div className="text-lg font-bold text-stone-800 dark:text-white group-hover:text-stone-900 dark:group-hover:text-white transition-colors line-clamp-1">
           {next.title}
         </div>
       </Link>
@@ -181,7 +180,7 @@ const PromptRenderer = React.memo(({ content, isAssistant, title }: { content: s
 const BlockRenderer: React.FC<{ block: ArticleBlock }> = React.memo(({ block }) => {
   switch (block.type) {
     case 'header':
-      return <h2 className="text-3xl font-bold text-stone-800 dark:text-stone-100 mt-10 mb-6 tracking-tight">{block.content}</h2>;
+      return <h2 className="text-3xl font-bold text-stone-800 dark:text-white mt-10 mb-6 tracking-tight">{block.content}</h2>;
     
     case 'text':
       return <div className="prose prose-stone dark:prose-invert max-w-none text-stone-600 dark:text-stone-300 leading-loose whitespace-pre-line mb-6 text-xl font-light">{block.content}</div>;
@@ -241,7 +240,7 @@ const BlockRenderer: React.FC<{ block: ArticleBlock }> = React.memo(({ block }) 
               <div className="w-0.5 h-full bg-stone-200 dark:bg-white/10 my-3 rounded-full"></div>
            </div>
            <div className="pt-1 pb-10">
-              {block.meta && <h4 className="text-xl font-bold text-stone-800 dark:text-stone-100 mb-3">{block.meta}</h4>}
+              {block.meta && <h4 className="text-xl font-bold text-stone-800 dark:text-white mb-3">{block.meta}</h4>}
               <p className="text-stone-600 dark:text-stone-400 text-lg leading-relaxed">{block.content}</p>
            </div>
         </div>
@@ -261,7 +260,7 @@ const CarouselPage = () => {
          <div className="w-32 h-32 bg-gradient-to-br from-violet-100 to-fuchsia-100 dark:from-violet-900/20 dark:to-fuchsia-900/20 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-soft">
             <GalleryHorizontal size={56} className="text-violet-500 dark:text-violet-400" strokeWidth={1.5} />
          </div>
-         <h1 className="text-5xl font-bold text-stone-800 dark:text-stone-100 mb-6 tracking-tight">Конструктор каруселей</h1>
+         <h1 className="text-5xl font-bold text-stone-800 dark:text-white mb-6 tracking-tight">Конструктор каруселей</h1>
          <p className="text-2xl text-stone-500 dark:text-stone-400 max-w-2xl font-light leading-relaxed">
             Мы работаем над инструментом, который позволит вам создавать вирусные карусели для соцсетей в пару кликов.
          </p>
@@ -280,7 +279,7 @@ const FavoritesPage = () => {
   return (
     <Layout breadcrumbs={[{ label: 'Избранное' }]}>
        <div className="mb-10 animate-enter">
-          <h1 className="text-4xl font-bold text-stone-800 dark:text-stone-100 mb-3">Избранное</h1>
+          <h1 className="text-4xl font-bold text-stone-800 dark:text-white mb-3">Избранное</h1>
           <p className="text-lg text-stone-500 dark:text-stone-400">Ваша личная коллекция промтов и ассистентов.</p>
        </div>
 
@@ -300,7 +299,7 @@ const FavoritesPage = () => {
                     </span>
                     <ArrowRight size={20} className="text-stone-300 group-hover:text-orange-500 transition-colors" />
                   </div>
-                  <h3 className="text-xl font-bold text-stone-800 dark:text-stone-200 mb-2 leading-tight group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">{item.title}</h3>
+                  <h3 className="text-xl font-bold text-stone-800 dark:text-white mb-2 leading-tight group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">{item.title}</h3>
                   <p className="text-sm text-stone-400 line-clamp-1">{category.title}</p>
                 </Link>
               ))}
@@ -310,7 +309,7 @@ const FavoritesPage = () => {
             <div className="w-20 h-20 rounded-full bg-stone-100 dark:bg-white/10 flex items-center justify-center text-stone-300 mb-6">
                <Heart size={40} />
             </div>
-            <h3 className="text-2xl font-bold text-stone-800 dark:text-stone-200">Пока пусто</h3>
+            <h3 className="text-2xl font-bold text-stone-800 dark:text-white">Пока пусто</h3>
             <p className="text-stone-500 dark:text-stone-400 max-w-xs mt-3 text-lg">Добавляйте полезные промты в избранное, нажимая на сердечко.</p>
             <Link to="/" className="mt-8 px-8 py-4 rounded-xl bg-stone-900 dark:bg-white text-white dark:text-stone-900 font-bold text-base hover:opacity-90 transition-opacity">
                Перейти в каталог
@@ -332,7 +331,7 @@ const InstructionsPage = () => {
             <BookOpen size={16} />
             <span>База знаний</span>
          </div>
-         <h1 className="text-5xl font-bold text-stone-800 dark:text-stone-100 mb-6 tracking-tight">Инструкции и гайды</h1>
+         <h1 className="text-5xl font-bold text-stone-800 dark:text-white mb-6 tracking-tight">Инструкции и гайды</h1>
          <p className="text-2xl text-stone-500 dark:text-stone-400 font-light max-w-3xl">
             Полезные статьи о том, как эффективно использовать нейросети, настраивать ассистентов и писать идеальные промты.
          </p>
@@ -363,7 +362,7 @@ const InstructionsPage = () => {
                   <div className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">
                      {new Date(article.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
                   </div>
-                  <h3 className="text-2xl font-bold text-stone-800 dark:text-stone-100 mb-4 leading-tight group-hover:text-orange-600 transition-colors">
+                  <h3 className="text-2xl font-bold text-stone-800 dark:text-white mb-4 leading-tight group-hover:text-orange-600 transition-colors">
                      {article.title}
                   </h3>
                   <p className="text-stone-500 dark:text-stone-400 text-base leading-relaxed line-clamp-3 flex-1">
@@ -401,7 +400,7 @@ const ArticleDetailPage = () => {
              <div className="text-sm font-bold text-stone-400 uppercase tracking-widest mb-5">
                {new Date(article.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
              </div>
-             <h1 className="text-4xl md:text-6xl font-extrabold text-stone-900 dark:text-stone-100 mb-8 leading-tight tracking-tight">
+             <h1 className="text-4xl md:text-6xl font-extrabold text-stone-900 dark:text-white mb-8 leading-tight tracking-tight">
                 {article.title}
              </h1>
              <p className="text-2xl text-stone-500 dark:text-stone-400 font-light leading-relaxed max-w-3xl mx-auto">
@@ -450,7 +449,7 @@ const HomePage = () => {
     if (!isSearching) return null;
     return (
         <div className="mb-20 animate-enter">
-          <h2 className="text-3xl font-bold text-stone-800 dark:text-stone-100 mb-8 px-2">Результаты поиска</h2>
+          <h2 className="text-3xl font-bold text-stone-800 dark:text-white mb-8 px-2">Результаты поиска</h2>
           {searchResults.length > 0 ? (
              <div className="grid gap-5">
                {searchResults.map(({ item, category, section }) => (
@@ -465,7 +464,7 @@ const HomePage = () => {
                       {item.type === ItemType.ASSISTANT ? <Bot size={24} /> : (item.type === ItemType.SEQUENCE ? <Layers size={24} /> : <FileText size={24} />)}
                     </div>
                     <div>
-                      <div className="text-xl font-bold text-stone-800 dark:text-stone-200 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors mb-1">{item.title}</div>
+                      <div className="text-xl font-bold text-stone-800 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors mb-1">{item.title}</div>
                       <div className="text-sm text-stone-400 font-medium">{category.title} • {section.title}</div>
                     </div>
                  </Link>
@@ -490,7 +489,7 @@ const HomePage = () => {
               key={cat.id} 
               to={`/category/${cat.id}`}
               // Reduced stagger delay (20ms instead of default/auto)
-              className={`clean-card theme-${cat.theme || 'orange'} card-glow-${index % 5} rounded-[2.5rem] animate-enter group dark:border-white/10 dark:bg-[#1E1E1E]`}
+              className={`clean-card theme-${cat.theme || 'orange'} card-glow-${index % 5} rounded-[2.5rem] animate-enter group`}
               style={{ animationDelay: `${index * 20}ms` }} 
             >
               <div className="aspect-[16/9] w-full p-12 flex flex-col justify-between relative z-10">
@@ -504,8 +503,8 @@ const HomePage = () => {
 
                 {/* Content */}
                 <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                  <h2 className="text-stone-900 dark:text-stone-100 text-4xl font-bold mb-3 leading-tight tracking-tight">{cat.title}</h2>
-                  <p className="text-stone-500 dark:text-stone-400 text-base font-medium opacity-90 line-clamp-2 leading-relaxed">{cat.description}</p>
+                  <h2 className="text-stone-900 dark:text-white text-4xl font-bold mb-3 leading-tight tracking-tight">{cat.title}</h2>
+                  <p className="text-stone-500 dark:text-stone-500 text-base font-medium opacity-90 line-clamp-2 leading-relaxed">{cat.description}</p>
                 </div>
 
                 {/* Decorative Icon */}
@@ -528,7 +527,7 @@ const HomePage = () => {
           <Sparkles size={16} className="text-amber-500 fill-amber-500" />
           <span className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">База знаний</span>
         </div>
-        <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight text-stone-900 dark:text-stone-100 mb-10 leading-tight">
+        <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight text-stone-900 dark:text-white mb-10 leading-tight">
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-stone-800 to-stone-600 dark:from-white dark:to-stone-400">GPT</span> 
           <span className="text-stone-300 dark:text-stone-600 px-3">·</span> 
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-rose-500">ПРАКТИК</span>
@@ -578,7 +577,7 @@ const CategoryPage = () => {
   return (
     <Layout breadcrumbs={[{ label: category.title }]}>
       <div className="mb-8 text-center md:text-left animate-enter">
-        <h1 className="text-5xl md:text-6xl font-bold text-stone-800 dark:text-stone-100 mb-6 tracking-tight">{category.title}</h1>
+        <h1 className="text-5xl md:text-6xl font-bold text-stone-800 dark:text-white mb-6 tracking-tight">{category.title}</h1>
         <p className="text-2xl text-stone-500 dark:text-stone-400 font-light max-w-3xl leading-relaxed">{category.description}</p>
       </div>
 
@@ -611,7 +610,7 @@ const CategoryPage = () => {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-3xl font-bold text-stone-800 dark:text-stone-100 mb-3 group-hover:text-stone-900 dark:group-hover:text-white transition-colors duration-200">{section.title}</h3>
+                  <h3 className="text-3xl font-bold text-stone-800 dark:text-white mb-3 group-hover:text-stone-900 dark:group-hover:text-white transition-colors duration-200">{section.title}</h3>
                   <p className="text-lg text-stone-500 dark:text-stone-400 leading-relaxed font-light">
                     {section.description || 'Перейдите, чтобы увидеть материалы.'}
                   </p>
@@ -662,7 +661,7 @@ const SectionPage = () => {
       { label: section.title }
     ]}>
       <div className="mb-8 animate-enter">
-        <h1 className="text-5xl font-bold text-stone-800 dark:text-stone-100 mb-4 tracking-tight">{section.title}</h1>
+        <h1 className="text-5xl font-bold text-stone-800 dark:text-white mb-4 tracking-tight">{section.title}</h1>
         <p className="text-2xl text-stone-500 dark:text-stone-400 font-light">{section.description}</p>
       </div>
 
@@ -677,7 +676,7 @@ const SectionPage = () => {
                   onClick={() => setShowInstructions(!showInstructions)}
                   className="flex items-center justify-between cursor-pointer mb-5"
                 >
-                  <div className="flex items-center gap-3 text-stone-800 dark:text-stone-200 font-bold">
+                  <div className="flex items-center gap-3 text-stone-800 dark:text-white font-bold">
                     <div className="p-2.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-xl">
                       <Info size={20} />
                     </div>
@@ -717,7 +716,7 @@ const SectionPage = () => {
                 {item.type === ItemType.ASSISTANT ? <Bot size={30} /> : (item.type === ItemType.SEQUENCE ? <Layers size={30} /> : <FileText size={30} />)}
               </div>
               <div className="flex-1 min-w-0 relative z-10 pointer-events-none">
-                <h3 className="font-bold text-xl text-stone-800 dark:text-stone-200 mb-2 truncate group-hover:text-stone-900 dark:group-hover:text-white transition-colors">{item.title}</h3>
+                <h3 className="font-bold text-xl text-stone-800 dark:text-white mb-2 truncate group-hover:text-stone-900 dark:group-hover:text-white transition-colors">{item.title}</h3>
                 <p className="text-base text-stone-400 truncate group-hover:text-stone-500 transition-colors">{item.description}</p>
               </div>
               
@@ -816,7 +815,7 @@ const ItemDetail = () => {
 
           {/* Title & Desc */}
           <div>
-            <h1 className="text-4xl md:text-6xl font-extrabold text-stone-800 dark:text-stone-100 mb-6 leading-tight tracking-tight text-left">
+            <h1 className="text-4xl md:text-6xl font-extrabold text-stone-800 dark:text-white mb-6 leading-tight tracking-tight text-left">
               {item.title}
             </h1>
             <p className="text-xl text-stone-500 dark:text-stone-400 leading-relaxed font-light text-left">
@@ -877,7 +876,7 @@ const ItemDetail = () => {
                        </button>
 
                        <div className="flex-1">
-                          <h4 className={`text-2xl font-bold transition-colors ${isCompleted ? 'text-stone-400 line-through' : 'text-stone-800 dark:text-stone-100'}`}>
+                          <h4 className={`text-2xl font-bold transition-colors ${isCompleted ? 'text-stone-400 line-through' : 'text-stone-800 dark:text-white'}`}>
                             {sub.title}
                           </h4>
                           {isActive && (
@@ -930,12 +929,12 @@ const ItemDetail = () => {
               {/* Sub-prompts for Assistants */}
               {isAssistant && item.subPrompts && item.subPrompts.length > 0 && (
                 <div className="mt-10">
-                  <h3 className="text-2xl font-bold text-stone-800 dark:text-stone-100 mb-8 pl-2">Дополнительные промты</h3>
+                  <h3 className="text-2xl font-bold text-stone-800 dark:text-white mb-8 pl-2">Дополнительные промты</h3>
                   <div className="grid gap-6">
                     {item.subPrompts.map((sub, idx) => (
                       <div key={idx} className="bg-white/80 dark:bg-white/5 backdrop-blur-md rounded-[2rem] p-8 hover:shadow-soft transition-all duration-300 border border-stone-100/50 dark:border-white/5">
                         <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-                          <h4 className="font-bold text-stone-800 dark:text-stone-200 text-lg">{sub.title}</h4>
+                          <h4 className="font-bold text-stone-800 dark:text-white text-lg">{sub.title}</h4>
                           <CopyButton text={sub.content} label="Копировать" className="scale-100" />
                         </div>
                         <div className="font-mono text-sm text-stone-500 dark:text-stone-400 leading-loose p-6 bg-stone-50 dark:bg-black/20 rounded-2xl border border-stone-100 dark:border-white/5">
