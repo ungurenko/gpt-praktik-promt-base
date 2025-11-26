@@ -1,5 +1,5 @@
 {
-  "name": "GPT-PRACTICUM Prompt Base",
+  "name": "GPT-Практик (база промтов)",
   "description": "An interactive knowledge base for storing, organizing, and accessing ChatGPT prompts and assistant configurations in a clean, Linear-style interface.",
   "requestFramePermissions": []
 }
