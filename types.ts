@@ -21,6 +21,7 @@ export interface Section {
   title: string;
   description?: string;
   instructions?: string; // "Описание как работать с этим разделом"
+  icon?: string; // Custom icon name
   items: PromptItem[];
 }
 

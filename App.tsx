@@ -8,7 +8,7 @@ import {
   Fingerprint, Brain, Target, Feather, Zap, LayoutTemplate, GraduationCap, 
   MessageCircle, Rocket, Cpu, Palette, Briefcase, User, Layers, ArrowDown, Copy, 
   Play, BookOpen, CheckCircle, AlertTriangle, Lightbulb, GalleryHorizontal,
-  Check, Circle, Lock, Unlock, X
+  Check, Circle, Lock, Unlock, X, Globe, Box, Flag, Image as ImageIcon, Video, Music, Map, Grid, List, Star
 } from 'lucide-react';
 import CopyButton from './components/CopyButton';
 import { ItemType, Article, ArticleBlock } from './types';
@@ -22,6 +22,39 @@ const ScrollToTop = () => {
     if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
   }, [pathname]);
   return null;
+};
+
+// --- Icon Registry ---
+export const ICON_MAP: Record<string, React.ElementType> = {
+  'fingerprint': Fingerprint,
+  'target': Target,
+  'layout': LayoutTemplate,
+  'feather': Feather,
+  'cpu': Cpu,
+  'graduation': GraduationCap,
+  'message': MessageCircle,
+  'brain': Brain,
+  'sparkles': Sparkles,
+  'zap': Zap,
+  'rocket': Rocket,
+  'briefcase': Briefcase,
+  'globe': Globe,
+  'box': Box,
+  'flag': Flag,
+  'layers': Layers,
+  'bot': Bot,
+  'image': ImageIcon,
+  'video': Video,
+  'music': Music,
+  'map': Map,
+  'grid': Grid,
+  'list': List,
+  'check': CheckCircle,
+  'star': Star,
+  'heart': Heart,
+  'user': User,
+  'palette': Palette,
+  'file': FileText
 };
 
 // --- Helper: Smart Icon System ---
@@ -595,7 +628,8 @@ const CategoryPage = () => {
         <div className="grid gap-8">
           {category.sections.map((section, index) => {
             const theme = getSectionTheme(section.title);
-            const ThemeIcon = theme.icon;
+            // Use custom icon if available, otherwise fallback to theme icon
+            const ThemeIcon = (section.icon && ICON_MAP[section.icon]) ? ICON_MAP[section.icon] : theme.icon;
             
             return (
               <Link 

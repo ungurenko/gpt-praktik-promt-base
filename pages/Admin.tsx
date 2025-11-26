@@ -8,9 +8,10 @@ import {
     Plus, Trash2, Save, ArrowLeft, Folder, FileText, Bot, MoreHorizontal, X, 
     Image as ImageIcon, Layout as LayoutIcon, Upload, ChevronRight, Layers, 
     ArrowDown, ArrowUp, Lock, LogOut, BookOpen, Type, Code, Video, CheckCircle, 
-    Lightbulb, GripVertical, Eye, Laptop
+    Lightbulb, GripVertical, Eye, Laptop, Search
 } from 'lucide-react';
 import { Category, Section, PromptItem, ItemType, Article, ArticleBlock, BlockType } from '../types';
+import { ICON_MAP } from '../App'; // Import icon map from App
 
 // --- Clean Tech UI Components ---
 
@@ -55,6 +56,52 @@ const Card = ({ children, className = "" }: { children?: React.ReactNode, classN
     {children}
   </div>
 );
+
+// --- Icon Picker Component ---
+const IconPicker = ({ selected, onChange }: { selected?: string, onChange: (icon: string) => void }) => {
+    const icons = Object.keys(ICON_MAP);
+    const [search, setSearch] = useState('');
+
+    const filteredIcons = icons.filter(icon => icon.includes(search.toLowerCase()));
+
+    return (
+        <div className="space-y-4">
+            <div className="relative">
+                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" />
+                <input 
+                    type="text" 
+                    placeholder="Поиск иконки..." 
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 bg-stone-50 border border-stone-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-300 transition-all text-sm font-medium"
+                />
+            </div>
+            <div className="grid grid-cols-6 sm:grid-cols-8 gap-3 max-h-48 overflow-y-auto p-2 border border-stone-100 rounded-2xl bg-stone-50/50 custom-scrollbar">
+                {filteredIcons.map(iconKey => {
+                    const IconComp = ICON_MAP[iconKey];
+                    const isSelected = selected === iconKey;
+                    return (
+                        <button
+                            key={iconKey}
+                            onClick={() => onChange(iconKey)}
+                            title={iconKey}
+                            className={`aspect-square flex items-center justify-center rounded-xl transition-all ${isSelected ? 'bg-stone-800 text-white shadow-md scale-105' : 'bg-white text-stone-500 hover:bg-orange-50 hover:text-orange-500 hover:shadow-sm'}`}
+                        >
+                            <IconComp size={20} strokeWidth={isSelected ? 2 : 1.5} />
+                        </button>
+                    )
+                })}
+            </div>
+            {selected && (
+                <div className="flex items-center gap-2 text-sm text-stone-500">
+                    <span>Выбрано:</span>
+                    <span className="font-mono bg-stone-100 px-2 py-0.5 rounded text-stone-800 font-bold">{selected}</span>
+                    <button onClick={() => onChange('')} className="text-xs text-rose-500 hover:underline ml-auto">Сбросить</button>
+                </div>
+            )}
+        </div>
+    )
+}
 
 // --- Login Screen ---
 
@@ -296,7 +343,7 @@ const AdminDashboard = () => {
   );
 };
 
-// --- Article Editor ---
+// ... ArticleEditor ...
 const ArticleEditor = () => {
   const { articleId } = useParams();
   const { getArticle, addArticle, updateArticle, showToast } = useData();
@@ -317,8 +364,6 @@ const ArticleEditor = () => {
       const existing = getArticle(articleId);
       if (existing) {
         setFormData(existing);
-      } else {
-        // If new, keep the initialized ID
       }
     }
   }, [articleId, getArticle]);
@@ -343,11 +388,10 @@ const ArticleEditor = () => {
           return;
       }
       
-      // Strict size check (e.g. 800KB) because LocalStorage is limited (~5MB total)
       const LIMIT_KB = 800;
       if (file.size > LIMIT_KB * 1024) {
-          alert(`Файл слишком большой (${(file.size / 1024 / 1024).toFixed(2)} MB). Максимальный размер: ${LIMIT_KB}КБ, так как приложение хранит данные в браузере.`);
-          return; // STOP execution
+          alert(`Файл слишком большой (${(file.size / 1024 / 1024).toFixed(2)} MB). Максимальный размер: ${LIMIT_KB}КБ.`);
+          return; 
       }
 
       const reader = new FileReader();
@@ -524,15 +568,13 @@ const ArticleEditor = () => {
 
                    {/* Block Inputs */}
                    <div className="mt-8">
-                      
                       {/* HEADER */}
                       {block.type === 'header' && (
                          <input 
-                           className="w-full text-3xl font-bold text-stone-800 placeholder-stone-300 border-none outline-none bg-transparent"
+                           className="w-full text-4xl font-bold text-stone-800 placeholder-stone-300 border-none outline-none bg-transparent leading-tight"
                            placeholder="Текст заголовка..."
                            value={block.content}
                            onChange={(e) => updateBlock(block.id, 'content', e.target.value)}
-                           autoFocus
                          />
                       )}
 
@@ -540,11 +582,10 @@ const ArticleEditor = () => {
                       {block.type === 'text' && (
                          <textarea 
                            rows={4}
-                           className="w-full text-xl text-stone-600 placeholder-stone-300 border-none outline-none bg-transparent resize-y leading-relaxed"
+                           className="w-full text-2xl text-stone-600 placeholder-stone-300 border-none outline-none bg-transparent resize-y leading-loose"
                            placeholder="Введите текст абзаца..."
                            value={block.content}
                            onChange={(e) => updateBlock(block.id, 'content', e.target.value)}
-                           autoFocus
                          />
                       )}
 
@@ -583,7 +624,6 @@ const ArticleEditor = () => {
                                     placeholder={block.type === 'image' ? "URL или загрузите файл ->" : "URL видео (YouTube)..."}
                                     value={block.content.length > 50 ? (block.content.substring(0, 50) + '...') : block.content}
                                     onChange={(e) => updateBlock(block.id, 'content', e.target.value)}
-                                    // Don't let huge base64 strings slow down the text input too much visually
                                     disabled={block.content.startsWith('data:image')}
                                  />
                                  
@@ -943,6 +983,13 @@ const SectionEditor = () => {
               value={formData.description || ''} 
               onChange={(e: any) => setFormData({...formData, description: e.target.value})} 
             />
+            <div className="mb-6">
+               <label className="block text-sm font-bold text-stone-500 uppercase tracking-wider mb-2.5 ml-1">Иконка раздела</label>
+               <IconPicker 
+                  selected={formData.icon} 
+                  onChange={(icon) => setFormData({...formData, icon})} 
+               />
+            </div>
             <TextArea 
               label="Инструкция (Справа)" 
               value={formData.instructions || ''} 
@@ -1014,8 +1061,7 @@ const SectionEditor = () => {
   );
 };
 
-// --- Item Editor ---
-
+// ... ItemEditor and Admin (Unchanged) ...
 const ItemEditor = () => {
   const { categoryId, sectionId, itemId } = useParams();
   const { getItem, updateItem, showToast } = useData();
