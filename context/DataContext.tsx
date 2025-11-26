@@ -2,6 +2,8 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { Category, Section, PromptItem, ItemType, Article } from '../types';
 import { CATEGORIES as INITIAL_DATA } from '../data';
+import { supabase } from '../supabase';
+import { Sparkles } from 'lucide-react';
 
 // --- Initial Articles Data (Examples) ---
 const INITIAL_ARTICLES: Article[] = [
@@ -33,7 +35,7 @@ const INITIAL_ARTICLES: Article[] = [
       { id: 'b2', type: 'header', content: 'Алгоритм действий' },
       { id: 'b3', type: 'step', content: 'Соберите 3-5 своих лучших текстов (постов, писем), стиль которых вам нравится.', meta: 'Шаг 1: Сбор данных' },
       { id: 'b4', type: 'step', content: 'Используйте специальный промт для анализа стиля (см. ниже).', meta: 'Шаг 2: Анализ' },
-      { id: 'b5', type: 'code', content: 'Я предоставлю тебе несколько примеров моих текстов. Твоя задача:\n1. Проанализировать тон (Tone of Voice).\n2. Выделить структуру предложений и длину абзацев.\n3. Запомнить использование сленга или терминов.\n\nПосле этого я попрошу тебя написать новый текст, и ты должен будешь имитировать этот стиль.\n\nВот примеры:\n[ВСТАВЬТЕ ТЕКСТ 1]\n[ВСТАВЬТЕ ТЕКСТ 2]', meta: 'Промт для анализа стиля' },
+      { id: 'b5', type: 'code', content: 'Я предоставлю тебе несколько примеров моих текстов. Твоя задача:\n1. Проанализировать тон (Tone of Voice).\n2. Выделить структуру предложений и длину абзацев.\n3. Запомнить использование сленга или терминов.\n\nПосле этого я попрошу тебя написать новый текст, и ты должен будешь имитировать этот стиль.\n\nВот примеры:\n[ВСТАВИТЬ ТЕКСТ 1]\n[ВСТАВЬТЕ ТЕКСТ 2]', meta: 'Промт для анализа стиля' },
       { id: 'b6', type: 'step', content: 'После того как ChatGPT подтвердит, что понял стиль, дайте ему задачу на написание нового контента.', meta: 'Шаг 3: Генерация' },
       { id: 'b7', type: 'tip', content: 'Вы можете сохранить результат анализа (описание стиля, которое выдаст бот) и добавить его в Custom Instructions. Тогда бот всегда будет писать как вы.', meta: 'Pro Tip' }
     ]
@@ -97,35 +99,19 @@ interface DataContextType {
   toasts: Toast[];
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   removeToast: (id: string) => void;
+  // State
+  loading: boolean;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // --- Categories State ---
-  const [categories, setCategories] = useState<Category[]>(() => {
-    try {
-      const saved = localStorage.getItem('gpt-practicum-data');
-      return saved ? JSON.parse(saved) : INITIAL_DATA;
-    } catch (e) {
-      console.error("Failed to parse data from local storage", e);
-      return INITIAL_DATA;
-    }
-  });
+  // --- State ---
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // --- Articles State ---
-  const [articles, setArticles] = useState<Article[]>(() => {
-    try {
-      const saved = localStorage.getItem('gpt-practicum-articles');
-      if (!saved) return INITIAL_ARTICLES;
-      
-      const parsed = JSON.parse(saved);
-      return parsed.length > 0 ? parsed : INITIAL_ARTICLES;
-    } catch {
-      return INITIAL_ARTICLES;
-    }
-  });
-
+  // Favorites remain in localStorage for now (user preference)
   const [favorites, setFavorites] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('gpt-practicum-favorites');
@@ -136,53 +122,383 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   const [searchQuery, setSearchQuery] = useState('');
-
-  // --- Toast State ---
   const [toasts, setToasts] = useState<Toast[]>([]);
 
+  // --- Toast Logic ---
   const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success') => {
     const id = Date.now().toString();
     setToasts(prev => [...prev, { id, message, type }]);
-    
-    // Auto remove after 3 seconds
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 3000);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
   }, []);
 
   const removeToast = useCallback((id: string) => {
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
+  // --- Data Loading & Seeding ---
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  // Helper to safely save to localStorage
-  const safeSetItem = (key: string, value: any) => {
+  const loadData = async () => {
     try {
-      localStorage.setItem(key, JSON.stringify(value));
-    } catch (error: any) {
-      if (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
-        console.error("LocalStorage Limit Reached:", error);
-        showToast("Ошибка: Память браузера переполнена! Изменения не сохранены.", "error");
-      } else {
-        console.error(`Error saving ${key} to localStorage:`, error);
-        showToast("Ошибка сохранения данных", "error");
+      setLoading(true);
+      // 1. Check if we need to seed data
+      const { count } = await supabase.from('categories').select('*', { count: 'exact', head: true });
+      
+      if (count === 0) {
+        await seedDatabase();
       }
+
+      // 2. Fetch all data in parallel
+      const [catsRes, secsRes, itemsRes, artsRes] = await Promise.all([
+        supabase.from('categories').select('*').order('index', { ascending: true }),
+        supabase.from('sections').select('*').order('index', { ascending: true }),
+        supabase.from('items').select('*').order('index', { ascending: true }),
+        supabase.from('articles').select('*').order('date', { ascending: false })
+      ]);
+
+      if (catsRes.error) throw catsRes.error;
+      if (secsRes.error) throw secsRes.error;
+      if (itemsRes.error) throw itemsRes.error;
+      if (artsRes.error) throw artsRes.error;
+
+      // 3. Reconstruct Hierarchy
+      const fullCategories = (catsRes.data || []).map(cat => ({
+        ...cat,
+        sections: (secsRes.data || [])
+          .filter(sec => sec.category_id === cat.id)
+          .map(sec => ({
+            ...sec,
+            items: (itemsRes.data || [])
+              .filter(item => item.section_id === sec.id)
+              .map(item => ({
+                id: item.id,
+                title: item.title,
+                description: item.description,
+                instructions: item.instructions,
+                content: item.content,
+                type: item.type as ItemType,
+                subPrompts: item.sub_prompts, // Map snake_case from DB
+                index: item.index
+              }))
+          }))
+      }));
+
+      // 4. Map Articles
+      const fullArticles = (artsRes.data || []).map(art => ({
+        id: art.id,
+        title: art.title,
+        description: art.description,
+        published: art.published,
+        date: art.date,
+        coverImage: art.cover_image, // Map snake_case
+        blocks: art.blocks
+      }));
+
+      setCategories(fullCategories);
+      setArticles(fullArticles);
+
+    } catch (error) {
+      console.error('Error loading data:', error);
+      showToast('Ошибка загрузки данных', 'error');
+    } finally {
+      // Small artificial delay to smooth out the transition
+      setTimeout(() => setLoading(false), 500);
     }
   };
 
-  useEffect(() => {
-    safeSetItem('gpt-practicum-data', categories);
-  }, [categories]);
+  const seedDatabase = async () => {
+    console.log("Seeding Database...");
+    
+    // Seed Categories
+    const catRows = INITIAL_DATA.map((c, idx) => ({
+      id: c.id, 
+      title: c.title, 
+      description: c.description, 
+      theme: c.theme, 
+      index: idx
+    }));
+    await supabase.from('categories').insert(catRows);
+
+    // Seed Sections
+    const secRows: any[] = [];
+    INITIAL_DATA.forEach(c => {
+      c.sections.forEach((s, sIdx) => {
+        secRows.push({
+          id: s.id,
+          category_id: c.id,
+          title: s.title,
+          description: s.description,
+          instructions: s.instructions,
+          icon: s.icon,
+          index: sIdx
+        });
+      });
+    });
+    if (secRows.length > 0) await supabase.from('sections').insert(secRows);
+
+    // Seed Items
+    const itemRows: any[] = [];
+    INITIAL_DATA.forEach(c => {
+      c.sections.forEach(s => {
+        s.items.forEach((i, iIdx) => {
+          itemRows.push({
+            id: i.id,
+            section_id: s.id,
+            title: i.title,
+            description: i.description,
+            instructions: i.instructions,
+            content: i.content,
+            type: i.type,
+            sub_prompts: i.subPrompts,
+            index: iIdx
+          });
+        });
+      });
+    });
+    if (itemRows.length > 0) await supabase.from('items').insert(itemRows);
+
+    // Seed Articles
+    const artRows = INITIAL_ARTICLES.map(a => ({
+      id: a.id,
+      title: a.title,
+      description: a.description,
+      cover_image: a.coverImage,
+      published: a.published,
+      date: a.date,
+      blocks: a.blocks
+    }));
+    await supabase.from('articles').insert(artRows);
+    console.log("Seeding complete.");
+  };
+
+  // --- CRUD Operations ---
+
+  // Write - Category
+  const addCategory = async (category: Category) => {
+    const newCat = { 
+      id: category.id, 
+      title: category.title, 
+      description: category.description, 
+      theme: category.theme, 
+      index: categories.length // Put at end
+    };
+    
+    // Optimistic Update
+    setCategories([...categories, category]);
+    
+    const { error } = await supabase.from('categories').insert([newCat]);
+    if (error) {
+        console.error(error);
+        showToast("Ошибка при создании категории", "error");
+        loadData(); // Revert
+    }
+  };
+
+  const updateCategory = async (id: string, data: Partial<Category>) => {
+    setCategories(categories.map(c => c.id === id ? { ...c, ...data } : c));
+    
+    const { error } = await supabase.from('categories').update(data).eq('id', id);
+    if (error) {
+        console.error(error);
+        showToast("Ошибка сохранения", "error");
+    }
+  };
+
+  const deleteCategory = async (id: string) => {
+    setCategories(categories.filter(c => c.id !== id));
+    await supabase.from('categories').delete().eq('id', id);
+  };
+
+  const moveCategory = async (fromIndex: number, toIndex: number) => {
+    if (fromIndex < 0 || fromIndex >= categories.length || toIndex < 0 || toIndex >= categories.length) return;
+    
+    const newCategories = [...categories];
+    const [movedItem] = newCategories.splice(fromIndex, 1);
+    newCategories.splice(toIndex, 0, movedItem);
+    
+    setCategories(newCategories);
+
+    // Update indexes in DB
+    const updates = newCategories.map((c, idx) => ({ id: c.id, index: idx }));
+    // We can't batch update different IDs easily without UPSERT logic or multiple calls.
+    // For simplicity with small lists, we loop upsert.
+    for (const update of updates) {
+        await supabase.from('categories').update({ index: update.index }).eq('id', update.id);
+    }
+  };
+
+  // Write - Section
+  const addSection = async (catId: string, section: Section) => {
+    const parent = categories.find(c => c.id === catId);
+    if (!parent) return;
+
+    const newSec = {
+        id: section.id,
+        category_id: catId,
+        title: section.title,
+        description: section.description,
+        instructions: section.instructions,
+        icon: section.icon,
+        index: parent.sections.length
+    };
+
+    setCategories(categories.map(c => {
+      if (c.id !== catId) return c;
+      return { ...c, sections: [...c.sections, section] };
+    }));
+
+    const { error } = await supabase.from('sections').insert([newSec]);
+    if (error) console.error(error);
+  };
+
+  const updateSection = async (catId: string, secId: string, data: Partial<Section>) => {
+    setCategories(categories.map(c => {
+      if (c.id !== catId) return c;
+      return {
+        ...c,
+        sections: c.sections.map(s => s.id === secId ? { ...s, ...data } : s)
+      };
+    }));
+
+    const { error } = await supabase.from('sections').update(data).eq('id', secId);
+    if (error) console.error(error);
+  };
+
+  const deleteSection = async (catId: string, secId: string) => {
+    setCategories(categories.map(c => {
+      if (c.id !== catId) return c;
+      return {
+        ...c,
+        sections: c.sections.filter(s => s.id !== secId)
+      };
+    }));
+    await supabase.from('sections').delete().eq('id', secId);
+  };
+
+  // Write - Item
+  const addItem = async (catId: string, secId: string, item: PromptItem) => {
+    const cat = categories.find(c => c.id === catId);
+    const sec = cat?.sections.find(s => s.id === secId);
+    if (!sec) return;
+
+    const newItem = {
+        id: item.id,
+        section_id: secId,
+        title: item.title,
+        description: item.description,
+        instructions: item.instructions,
+        content: item.content,
+        type: item.type,
+        sub_prompts: item.subPrompts,
+        index: sec.items.length
+    };
+
+    setCategories(categories.map(c => {
+      if (c.id !== catId) return c;
+      return {
+        ...c,
+        sections: c.sections.map(s => {
+          if (s.id !== secId) return s;
+          return { ...s, items: [...s.items, item] };
+        })
+      };
+    }));
+
+    const { error } = await supabase.from('items').insert([newItem]);
+    if (error) console.error(error);
+  };
+
+  const updateItem = async (catId: string, secId: string, itemId: string, data: Partial<PromptItem>) => {
+    setCategories(categories.map(c => {
+      if (c.id !== catId) return c;
+      return {
+        ...c,
+        sections: c.sections.map(s => {
+          if (s.id !== secId) return s;
+          return {
+            ...s,
+            items: s.items.map(i => i.id === itemId ? { ...i, ...data } : i)
+          };
+        })
+      };
+    }));
+
+    // Map TS fields to DB fields
+    const dbUpdate: any = { ...data };
+    if (data.subPrompts) {
+        dbUpdate.sub_prompts = data.subPrompts;
+        delete dbUpdate.subPrompts;
+    }
+
+    const { error } = await supabase.from('items').update(dbUpdate).eq('id', itemId);
+    if (error) console.error(error);
+  };
+
+  const deleteItem = async (catId: string, secId: string, itemId: string) => {
+    setCategories(categories.map(c => {
+      if (c.id !== catId) return c;
+      return {
+        ...c,
+        sections: c.sections.map(s => {
+          if (s.id !== secId) return s;
+          return {
+            ...s,
+            items: s.items.filter(i => i.id !== itemId)
+          };
+        })
+      };
+    }));
+    await supabase.from('items').delete().eq('id', itemId);
+  };
+
+  // Write - Articles
+  const addArticle = async (article: Article) => {
+    setArticles([article, ...articles]);
+    
+    const dbArticle = {
+        id: article.id,
+        title: article.title,
+        description: article.description,
+        cover_image: article.coverImage,
+        published: article.published,
+        date: article.date,
+        blocks: article.blocks
+    };
+
+    const { error } = await supabase.from('articles').insert([dbArticle]);
+    if (error) {
+        console.error(error);
+        showToast('Ошибка публикации', 'error');
+    }
+  };
+
+  const updateArticle = async (id: string, data: Partial<Article>) => {
+    setArticles(articles.map(a => a.id === id ? { ...a, ...data } : a));
+
+    const dbUpdate: any = { ...data };
+    if (data.coverImage) {
+        dbUpdate.cover_image = data.coverImage;
+        delete dbUpdate.coverImage;
+    }
+
+    const { error } = await supabase.from('articles').update(dbUpdate).eq('id', id);
+    if (error) console.error(error);
+  };
+
+  const deleteArticle = async (id: string) => {
+    setArticles(articles.filter(a => a.id !== id));
+    await supabase.from('articles').delete().eq('id', id);
+  };
+
+
+  // --- Helper: Favorites & Search ---
   
   useEffect(() => {
-    safeSetItem('gpt-practicum-articles', articles);
-  }, [articles]);
-
-  useEffect(() => {
-    safeSetItem('gpt-practicum-favorites', favorites);
+    localStorage.setItem('gpt-practicum-favorites', JSON.stringify(favorites));
   }, [favorites]);
 
-  // Favorites Logic
   const toggleFavorite = (itemId: string) => {
     setFavorites(prev => 
       prev.includes(itemId) ? prev.filter(id => id !== itemId) : [...prev, itemId]
@@ -191,8 +507,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const isFavorite = (itemId: string) => favorites.includes(itemId);
 
-  // --- PERFORMANCE: Cache flattened items list ---
-  // This prevents recalculating the huge array on every render or search keystroke
+  // Cache flattened items
   const allItemsCache = useMemo(() => {
     const results: { item: PromptItem, category: Category, section: Section }[] = [];
     categories.forEach(cat => {
@@ -218,129 +533,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   }, [allItemsCache, searchQuery]);
 
-
   // Read Helpers
   const getCategory = (id: string) => categories.find(c => c.id === id);
-  
-  const getSection = (catId: string, secId: string) => {
-    const cat = getCategory(catId);
-    return cat?.sections.find(s => s.id === secId);
-  };
-
-  const getItem = (catId: string, secId: string, itemId: string) => {
-    const sec = getSection(catId, secId);
-    return sec?.items.find(i => i.id === itemId);
-  };
-
+  const getSection = (catId: string, secId: string) => getCategory(catId)?.sections.find(s => s.id === secId);
+  const getItem = (catId: string, secId: string, itemId: string) => getSection(catId, secId)?.items.find(i => i.id === itemId);
   const getArticle = (id: string) => articles.find(a => a.id === id);
-
-  // Write - Category
-  const addCategory = (category: Category) => {
-    setCategories([...categories, category]);
-  };
-
-  const updateCategory = (id: string, data: Partial<Category>) => {
-    setCategories(categories.map(c => c.id === id ? { ...c, ...data } : c));
-  };
-
-  const deleteCategory = (id: string) => {
-    setCategories(categories.filter(c => c.id !== id));
-  };
-
-  const moveCategory = (fromIndex: number, toIndex: number) => {
-    if (fromIndex < 0 || fromIndex >= categories.length || toIndex < 0 || toIndex >= categories.length) return;
-    const newCategories = [...categories];
-    const [movedItem] = newCategories.splice(fromIndex, 1);
-    newCategories.splice(toIndex, 0, movedItem);
-    setCategories(newCategories);
-  };
-
-  // Write - Section
-  const addSection = (catId: string, section: Section) => {
-    setCategories(categories.map(c => {
-      if (c.id !== catId) return c;
-      return { ...c, sections: [...c.sections, section] };
-    }));
-  };
-
-  const updateSection = (catId: string, secId: string, data: Partial<Section>) => {
-    setCategories(categories.map(c => {
-      if (c.id !== catId) return c;
-      return {
-        ...c,
-        sections: c.sections.map(s => s.id === secId ? { ...s, ...data } : s)
-      };
-    }));
-  };
-
-  const deleteSection = (catId: string, secId: string) => {
-    setCategories(categories.map(c => {
-      if (c.id !== catId) return c;
-      return {
-        ...c,
-        sections: c.sections.filter(s => s.id !== secId)
-      };
-    }));
-  };
-
-  // Write - Item
-  const addItem = (catId: string, secId: string, item: PromptItem) => {
-    setCategories(categories.map(c => {
-      if (c.id !== catId) return c;
-      return {
-        ...c,
-        sections: c.sections.map(s => {
-          if (s.id !== secId) return s;
-          return { ...s, items: [...s.items, item] };
-        })
-      };
-    }));
-  };
-
-  const updateItem = (catId: string, secId: string, itemId: string, data: Partial<PromptItem>) => {
-    setCategories(categories.map(c => {
-      if (c.id !== catId) return c;
-      return {
-        ...c,
-        sections: c.sections.map(s => {
-          if (s.id !== secId) return s;
-          return {
-            ...s,
-            items: s.items.map(i => i.id === itemId ? { ...i, ...data } : i)
-          };
-        })
-      };
-    }));
-  };
-
-  const deleteItem = (catId: string, secId: string, itemId: string) => {
-    setCategories(categories.map(c => {
-      if (c.id !== catId) return c;
-      return {
-        ...c,
-        sections: c.sections.map(s => {
-          if (s.id !== secId) return s;
-          return {
-            ...s,
-            items: s.items.filter(i => i.id !== itemId)
-          };
-        })
-      };
-    }));
-  };
-
-  // Write - Articles
-  const addArticle = (article: Article) => {
-    setArticles([article, ...articles]);
-  };
-
-  const updateArticle = (id: string, data: Partial<Article>) => {
-    setArticles(articles.map(a => a.id === id ? { ...a, ...data } : a));
-  };
-
-  const deleteArticle = (id: string) => {
-    setArticles(articles.filter(a => a.id !== id));
-  };
 
   return (
     <DataContext.Provider value={{
@@ -353,9 +550,28 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addArticle, updateArticle, deleteArticle,
       favorites, toggleFavorite, isFavorite, getFavoriteItems,
       searchQuery, setSearchQuery, searchResults,
-      toasts, showToast, removeToast
+      toasts, showToast, removeToast,
+      loading
     }}>
-      {children}
+      {loading ? (
+        <div className="fixed inset-0 bg-stone-50 dark:bg-[#121212] flex flex-col items-center justify-center z-[100] transition-colors duration-300">
+           <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-rose-400 blur-xl opacity-20 animate-pulse"></div>
+              <div className="w-20 h-20 rounded-[2rem] bg-stone-900 dark:bg-white flex items-center justify-center relative z-10 shadow-xl">
+                 <Sparkles className="text-orange-500 animate-pulse" size={32} />
+              </div>
+           </div>
+           <div className="mt-8 flex flex-col items-center gap-2">
+              <h1 className="text-2xl font-bold text-stone-900 dark:text-white tracking-tight">GPT-ПРАКТИК</h1>
+              <div className="flex items-center gap-2">
+                 <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-bounce" style={{ animationDelay: '0s' }}></div>
+                 <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                 <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              </div>
+              <p className="text-stone-400 text-sm font-medium mt-1">Подключаем базу знаний...</p>
+           </div>
+        </div>
+      ) : children}
     </DataContext.Provider>
   );
 };
