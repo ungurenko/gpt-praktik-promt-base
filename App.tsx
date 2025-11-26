@@ -68,7 +68,7 @@ const PageNav: React.FC<PageNavProps> = ({ prev, next }) => (
     {prev ? (
       <Link 
         to={prev.to} 
-        className="group flex flex-col items-start text-left p-5 rounded-3xl bg-white/40 dark:bg-white/5 border border-stone-200/50 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:border-stone-200 dark:hover:border-white/10 hover:shadow-sm transition-all duration-300"
+        className="group flex flex-col items-start text-left p-5 rounded-3xl bg-white/40 dark:bg-[#1E1E1E] border border-stone-200/50 dark:border-[#2A2A2A] hover:bg-white dark:hover:bg-[#252525] hover:border-stone-200 dark:hover:border-[#333] hover:shadow-sm transition-all duration-300"
       >
         <div className="flex items-center gap-2 text-stone-400 text-[10px] font-bold uppercase tracking-wider mb-1.5 group-hover:text-orange-500 transition-colors">
           <ArrowLeft size={14} /> {prev.label}
@@ -82,7 +82,7 @@ const PageNav: React.FC<PageNavProps> = ({ prev, next }) => (
     {next ? (
       <Link 
         to={next.to} 
-        className="group flex flex-col items-start md:items-end text-left md:text-right p-5 rounded-3xl bg-white/40 dark:bg-white/5 border border-stone-200/50 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:border-stone-200 dark:hover:border-white/10 hover:shadow-sm transition-all duration-300"
+        className="group flex flex-col items-start md:items-end text-left md:text-right p-5 rounded-3xl bg-white/40 dark:bg-[#1E1E1E] border border-stone-200/50 dark:border-[#2A2A2A] hover:bg-white dark:hover:bg-[#252525] hover:border-stone-200 dark:hover:border-[#333] hover:shadow-sm transition-all duration-300"
       >
         <div className="flex items-center gap-2 text-stone-400 text-[10px] font-bold uppercase tracking-wider mb-1.5 group-hover:text-orange-500 transition-colors">
           {next.label} <ArrowRight size={14} />
@@ -289,7 +289,7 @@ const FavoritesPage = () => {
                 <Link 
                   key={item.id}
                   to={`/category/${category.id}/section/${section.id}/item/${item.id}`}
-                  className="bg-white/70 dark:bg-white/5 backdrop-blur-sm p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm hover:shadow-soft hover:-translate-y-1 transition-all duration-200 group will-change-transform"
+                  className="bg-white/70 dark:bg-[#1E1E1E] backdrop-blur-sm p-6 rounded-[2rem] border border-white/60 dark:border-[#2A2A2A] shadow-sm hover:shadow-soft hover:-translate-y-1 transition-all duration-200 group will-change-transform"
                 >
                   <div className="flex justify-between items-start mb-4">
                     <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg ${
@@ -305,7 +305,7 @@ const FavoritesPage = () => {
               ))}
            </div>
        ) : (
-         <div className="flex flex-col items-center justify-center py-24 bg-white/40 dark:bg-white/5 rounded-[2.5rem] border border-dashed border-stone-300 dark:border-stone-700 text-center">
+         <div className="flex flex-col items-center justify-center py-24 bg-white/40 dark:bg-[#1E1E1E] rounded-[2.5rem] border border-dashed border-stone-300 dark:border-[#2A2A2A] text-center">
             <div className="w-20 h-20 rounded-full bg-stone-100 dark:bg-white/10 flex items-center justify-center text-stone-300 mb-6">
                <Heart size={40} />
             </div>
@@ -342,7 +342,7 @@ const InstructionsPage = () => {
             <Link 
               key={article.id} 
               to={`/instructions/${article.id}`}
-              className="group flex flex-col bg-white dark:bg-white/5 rounded-[2rem] border border-stone-200 dark:border-white/10 overflow-hidden hover:shadow-soft hover:-translate-y-2 transition-all duration-200 h-full will-change-transform"
+              className="group flex flex-col bg-white dark:bg-[#1E1E1E] rounded-[2rem] border border-stone-200 dark:border-[#2A2A2A] overflow-hidden hover:shadow-soft hover:-translate-y-2 transition-all duration-200 h-full will-change-transform"
             >
                {article.coverImage ? (
                  <div className="h-56 overflow-hidden relative">
@@ -456,7 +456,7 @@ const HomePage = () => {
                  <Link 
                     key={item.id}
                     to={`/category/${category.id}/section/${section.id}/item/${item.id}`}
-                    className="flex items-center p-6 bg-white/60 dark:bg-white/5 rounded-3xl hover:bg-white dark:hover:bg-white/10 hover:shadow-md transition-all group border border-transparent dark:border-white/5 will-change-transform"
+                    className="flex items-center p-6 bg-white/60 dark:bg-[#1E1E1E] rounded-3xl hover:bg-white dark:hover:bg-[#252525] hover:shadow-md transition-all group border border-transparent dark:border-[#2A2A2A] will-change-transform"
                  >
                     <div className={`p-4 rounded-2xl mr-6 ${
                       item.type === ItemType.ASSISTANT ? 'bg-rose-100 text-rose-500' : (item.type === ItemType.SEQUENCE ? 'bg-violet-100 text-violet-500' : 'bg-orange-100 text-orange-500')
@@ -471,7 +471,7 @@ const HomePage = () => {
                ))}
              </div>
           ) : (
-            <div className="text-center py-16 bg-white/40 dark:bg-white/5 rounded-[2.5rem] border border-stone-200 dark:border-stone-700 border-dashed text-stone-400 text-lg">
+            <div className="text-center py-16 bg-white/40 dark:bg-[#1E1E1E] rounded-[2.5rem] border border-stone-200 dark:border-[#2A2A2A] border-dashed text-stone-400 text-lg">
               Ничего не найдено
             </div>
           )}
@@ -541,7 +541,7 @@ const HomePage = () => {
            <input 
              type="text" 
              placeholder="Найти промт, ассистента или тему..." 
-             className="w-full pl-16 pr-8 py-5 rounded-[1.5rem] bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-soft focus:shadow-glow focus:ring-2 focus:ring-orange-500/20 outline-none text-lg md:text-xl text-stone-800 dark:text-stone-100 placeholder-stone-400 transition-all"
+             className="w-full pl-16 pr-8 py-5 rounded-[1.5rem] bg-white/80 dark:bg-[#1A1A1A] backdrop-blur-xl border border-white/50 dark:border-[#2A2A2A] shadow-soft focus:shadow-glow focus:ring-2 focus:ring-orange-500/20 outline-none text-xl md:text-2xl text-stone-800 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 transition-all"
              value={localSearch}
              onChange={(e) => setLocalSearch(e.target.value)}
            />
@@ -585,7 +585,7 @@ const CategoryPage = () => {
       <PageNav prev={nav.prev} next={nav.next} />
 
       {category.sections.length === 0 ? (
-        <div className="text-center py-32 bg-white/40 dark:bg-white/5 backdrop-blur-sm rounded-[2.5rem] border border-dashed border-stone-300/50 dark:border-white/10 animate-scale-in">
+        <div className="text-center py-32 bg-white/40 dark:bg-[#1E1E1E] backdrop-blur-sm rounded-[2.5rem] border border-dashed border-stone-300/50 dark:border-[#2A2A2A] animate-scale-in">
           <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-white dark:bg-white/10 shadow-sm text-stone-300 mb-6">
             <Sparkles size={40} />
           </div>
@@ -601,7 +601,7 @@ const CategoryPage = () => {
               <Link 
                 key={section.id} 
                 to={`/category/${category.id}/section/${section.id}`}
-                className="group relative flex flex-col md:flex-row md:items-center p-10 rounded-[2.5rem] bg-white/60 dark:bg-white/5 backdrop-blur-md hover:bg-white dark:hover:bg-white/10 hover:shadow-soft transition-all duration-300 border border-white/50 dark:border-white/5 animate-enter will-change-transform"
+                className="group relative flex flex-col md:flex-row md:items-center p-10 rounded-[2.5rem] bg-white/60 dark:bg-[#1E1E1E] backdrop-blur-md hover:bg-white dark:hover:bg-[#252525] hover:shadow-soft transition-all duration-300 border border-white/50 dark:border-[#2A2A2A] animate-enter will-change-transform"
                 style={{ animationDelay: `${index * 20}ms` }}
               >
                 <div className="mb-8 md:mb-0 md:mr-10">
@@ -671,7 +671,7 @@ const SectionPage = () => {
       {/* Instructions */}
       {section.instructions && (
           <div className="w-full mb-10 animate-enter" style={{ animationDelay: '0.1s' }}>
-             <div className="bg-white/70 dark:bg-white/5 backdrop-blur-xl p-8 rounded-[2.5rem] shadow-sm border border-white/50 dark:border-white/5 hover:shadow-lg transition-all">
+             <div className="bg-white/70 dark:bg-[#1E1E1E] backdrop-blur-xl p-8 rounded-[2.5rem] shadow-sm border border-white/50 dark:border-[#2A2A2A] hover:shadow-lg transition-all">
                 <div 
                   onClick={() => setShowInstructions(!showInstructions)}
                   className="flex items-center justify-between cursor-pointer mb-5"
@@ -702,7 +702,7 @@ const SectionPage = () => {
           {section.items.map((item, index) => (
             <div 
               key={item.id}
-              className="group flex items-center p-8 bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-[2.5rem] hover:bg-white dark:hover:bg-white/10 hover:shadow-soft transition-all duration-300 border border-white/50 dark:border-white/5 animate-enter hover:-translate-y-1 relative will-change-transform"
+              className="group flex items-center p-8 bg-white/60 dark:bg-[#1E1E1E] backdrop-blur-sm rounded-[2.5rem] hover:bg-white dark:hover:bg-[#252525] hover:shadow-soft transition-all duration-300 border border-white/50 dark:border-[#2A2A2A] animate-enter hover:-translate-y-1 relative will-change-transform"
               style={{ animationDelay: `${index * 20}ms` }}
             >
                <Link to={`/category/${category.id}/section/${section.id}/item/${item.id}`} className="absolute inset-0 z-0" />
@@ -738,7 +738,7 @@ const SectionPage = () => {
             </div>
           ))}
           {section.items.length === 0 && (
-            <div className="p-16 text-center bg-white/40 dark:bg-white/5 rounded-[2.5rem] border border-dashed border-stone-300 dark:border-stone-700 text-stone-400 text-lg animate-scale-in">
+            <div className="p-16 text-center bg-white/40 dark:bg-[#1E1E1E] rounded-[2.5rem] border border-dashed border-stone-300 dark:border-[#2A2A2A] text-stone-400 text-lg animate-scale-in">
               В этом разделе пока нет материалов.
             </div>
           )}
@@ -825,7 +825,7 @@ const ItemDetail = () => {
 
           {/* Instructions Block */}
           {item.instructions && (
-            <section className="bg-white/60 dark:bg-white/5 backdrop-blur-md rounded-[2.5rem] p-8 shadow-sm border border-white/50 dark:border-white/10 mt-4">
+            <section className="bg-white/60 dark:bg-[#1E1E1E] backdrop-blur-md rounded-[2.5rem] p-8 shadow-sm border border-white/50 dark:border-[#2A2A2A] mt-4">
               <h3 className="text-xs font-black text-stone-400 uppercase tracking-widest mb-5 flex items-center gap-2">
                 <Info size={16} />
                 Инструкция
