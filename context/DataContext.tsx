@@ -55,6 +55,8 @@ const INITIAL_ARTICLES: Article[] = [
   }
 ];
 
+const DATA_CACHE_KEY = 'gpt-practicum-data-cache-v1';
+
 export interface Toast {
   id: string;
   message: string;
@@ -135,22 +137,35 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
-  // --- Data Loading & Seeding ---
+  // --- Data Loading & Seeding (Optimized) ---
   useEffect(() => {
-    loadData();
+    initializeData();
   }, []);
 
-  const loadData = async () => {
+  const initializeData = async () => {
+    // 1. Try to load from LocalStorage Cache first (Instant UI)
     try {
-      setLoading(true);
-      // 1. Check if we need to seed data
-      const { count } = await supabase.from('categories').select('*', { count: 'exact', head: true });
-      
-      if (count === 0) {
-        await seedDatabase();
-      }
+        const cached = localStorage.getItem(DATA_CACHE_KEY);
+        if (cached) {
+            const parsed = JSON.parse(cached);
+            setCategories(parsed.categories || []);
+            setArticles(parsed.articles || []);
+            setLoading(false); // Immediate interaction for returning users
+        } else {
+            setLoading(true); // Show spinner only for first-time users
+        }
+    } catch (e) {
+        console.warn('Cache parse error', e);
+        setLoading(true);
+    }
 
-      // 2. Fetch all data in parallel
+    // 2. Fetch fresh data from Supabase in background
+    await fetchRemoteData();
+  };
+
+  const fetchRemoteData = async (retrySeeding = true) => {
+    try {
+      // Parallel Fetching for speed
       const [catsRes, secsRes, itemsRes, artsRes] = await Promise.all([
         supabase.from('categories').select('*').order('index', { ascending: true }),
         supabase.from('sections').select('*').order('index', { ascending: true }),
@@ -159,11 +174,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ]);
 
       if (catsRes.error) throw catsRes.error;
-      if (secsRes.error) throw secsRes.error;
-      if (itemsRes.error) throw itemsRes.error;
-      if (artsRes.error) throw artsRes.error;
+      
+      // Check if DB is empty and we need to seed
+      if (catsRes.data?.length === 0 && retrySeeding) {
+          await seedDatabase();
+          // Recursively fetch again, but don't retry seeding to avoid infinite loop
+          return fetchRemoteData(false);
+      }
 
-      // 3. Reconstruct Hierarchy
+      // Reconstruct Hierarchy
       const fullCategories = (catsRes.data || []).map(cat => ({
         ...cat,
         sections: (secsRes.data || [])
@@ -185,7 +204,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }))
       }));
 
-      // 4. Map Articles
+      // Map Articles
       const fullArticles = (artsRes.data || []).map(art => ({
         id: art.id,
         title: art.title,
@@ -196,15 +215,29 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         blocks: art.blocks
       }));
 
+      // Update State
       setCategories(fullCategories);
       setArticles(fullArticles);
+      setLoading(false);
+
+      // Update Cache
+      try {
+        localStorage.setItem(DATA_CACHE_KEY, JSON.stringify({
+            categories: fullCategories,
+            articles: fullArticles,
+            timestamp: Date.now()
+        }));
+      } catch (e) {
+        console.warn('Cache write failed (likely quota exceeded)', e);
+      }
 
     } catch (error) {
-      console.error('Error loading data:', error);
-      showToast('Ошибка загрузки данных', 'error');
-    } finally {
-      // Small artificial delay to smooth out the transition
-      setTimeout(() => setLoading(false), 500);
+      console.error('Error fetching remote data:', error);
+      // If we have cache, we stay on cache. If not, we might show error or stay loading.
+      if (categories.length === 0) {
+         showToast('Ошибка подключения к базе данных', 'error');
+         setLoading(false); // Stop infinite spinner even on error
+      }
     }
   };
 
@@ -219,7 +252,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       theme: c.theme, 
       index: idx
     }));
-    await supabase.from('categories').insert(catRows);
+    const { error: catError } = await supabase.from('categories').insert(catRows);
+    if (catError) console.error("Error seeding categories:", catError);
 
     // Seed Sections
     const secRows: any[] = [];
@@ -273,7 +307,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log("Seeding complete.");
   };
 
-  // --- CRUD Operations ---
+  // --- CRUD Operations (Updated to refresh Cache) ---
+
+  const refreshCache = (newCats: Category[], newArts: Article[]) => {
+      try {
+        localStorage.setItem(DATA_CACHE_KEY, JSON.stringify({
+            categories: newCats,
+            articles: newArts,
+            timestamp: Date.now()
+        }));
+      } catch (e) { console.warn('Cache update failed'); }
+  };
 
   // Write - Category
   const addCategory = async (category: Category) => {
@@ -286,18 +330,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     
     // Optimistic Update
-    setCategories([...categories, category]);
+    const updated = [...categories, category];
+    setCategories(updated);
+    refreshCache(updated, articles);
     
     const { error } = await supabase.from('categories').insert([newCat]);
     if (error) {
         console.error(error);
         showToast("Ошибка при создании категории", "error");
-        loadData(); // Revert
+        fetchRemoteData(false); // Revert on error
     }
   };
 
   const updateCategory = async (id: string, data: Partial<Category>) => {
-    setCategories(categories.map(c => c.id === id ? { ...c, ...data } : c));
+    const updated = categories.map(c => c.id === id ? { ...c, ...data } : c);
+    setCategories(updated);
+    refreshCache(updated, articles);
     
     const { error } = await supabase.from('categories').update(data).eq('id', id);
     if (error) {
@@ -307,7 +355,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const deleteCategory = async (id: string) => {
-    setCategories(categories.filter(c => c.id !== id));
+    const updated = categories.filter(c => c.id !== id);
+    setCategories(updated);
+    refreshCache(updated, articles);
+
     await supabase.from('categories').delete().eq('id', id);
   };
 
@@ -319,11 +370,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     newCategories.splice(toIndex, 0, movedItem);
     
     setCategories(newCategories);
+    refreshCache(newCategories, articles);
 
     // Update indexes in DB
     const updates = newCategories.map((c, idx) => ({ id: c.id, index: idx }));
-    // We can't batch update different IDs easily without UPSERT logic or multiple calls.
-    // For simplicity with small lists, we loop upsert.
     for (const update of updates) {
         await supabase.from('categories').update({ index: update.index }).eq('id', update.id);
     }
@@ -344,36 +394,42 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         index: parent.sections.length
     };
 
-    setCategories(categories.map(c => {
+    const updated = categories.map(c => {
       if (c.id !== catId) return c;
       return { ...c, sections: [...c.sections, section] };
-    }));
+    });
+    setCategories(updated);
+    refreshCache(updated, articles);
 
     const { error } = await supabase.from('sections').insert([newSec]);
     if (error) console.error(error);
   };
 
   const updateSection = async (catId: string, secId: string, data: Partial<Section>) => {
-    setCategories(categories.map(c => {
+    const updated = categories.map(c => {
       if (c.id !== catId) return c;
       return {
         ...c,
         sections: c.sections.map(s => s.id === secId ? { ...s, ...data } : s)
       };
-    }));
+    });
+    setCategories(updated);
+    refreshCache(updated, articles);
 
     const { error } = await supabase.from('sections').update(data).eq('id', secId);
     if (error) console.error(error);
   };
 
   const deleteSection = async (catId: string, secId: string) => {
-    setCategories(categories.map(c => {
+    const updated = categories.map(c => {
       if (c.id !== catId) return c;
       return {
         ...c,
         sections: c.sections.filter(s => s.id !== secId)
       };
-    }));
+    });
+    setCategories(updated);
+    refreshCache(updated, articles);
     await supabase.from('sections').delete().eq('id', secId);
   };
 
@@ -395,7 +451,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         index: sec.items.length
     };
 
-    setCategories(categories.map(c => {
+    const updated = categories.map(c => {
       if (c.id !== catId) return c;
       return {
         ...c,
@@ -404,14 +460,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return { ...s, items: [...s.items, item] };
         })
       };
-    }));
+    });
+    setCategories(updated);
+    refreshCache(updated, articles);
 
     const { error } = await supabase.from('items').insert([newItem]);
     if (error) console.error(error);
   };
 
   const updateItem = async (catId: string, secId: string, itemId: string, data: Partial<PromptItem>) => {
-    setCategories(categories.map(c => {
+    const updated = categories.map(c => {
       if (c.id !== catId) return c;
       return {
         ...c,
@@ -423,7 +481,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
         })
       };
-    }));
+    });
+    setCategories(updated);
+    refreshCache(updated, articles);
 
     // Map TS fields to DB fields
     const dbUpdate: any = { ...data };
@@ -437,7 +497,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const deleteItem = async (catId: string, secId: string, itemId: string) => {
-    setCategories(categories.map(c => {
+    const updated = categories.map(c => {
       if (c.id !== catId) return c;
       return {
         ...c,
@@ -449,13 +509,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
         })
       };
-    }));
+    });
+    setCategories(updated);
+    refreshCache(updated, articles);
     await supabase.from('items').delete().eq('id', itemId);
   };
 
   // Write - Articles
   const addArticle = async (article: Article) => {
-    setArticles([article, ...articles]);
+    const updated = [article, ...articles];
+    setArticles(updated);
+    refreshCache(categories, updated);
     
     const dbArticle = {
         id: article.id,
@@ -475,7 +539,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateArticle = async (id: string, data: Partial<Article>) => {
-    setArticles(articles.map(a => a.id === id ? { ...a, ...data } : a));
+    const updated = articles.map(a => a.id === id ? { ...a, ...data } : a);
+    setArticles(updated);
+    refreshCache(categories, updated);
 
     const dbUpdate: any = { ...data };
     if (data.coverImage) {
@@ -488,7 +554,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const deleteArticle = async (id: string) => {
-    setArticles(articles.filter(a => a.id !== id));
+    const updated = articles.filter(a => a.id !== id);
+    setArticles(updated);
+    refreshCache(categories, updated);
     await supabase.from('articles').delete().eq('id', id);
   };
 
