@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { HashRouter, Routes, Route, Link, useParams, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useParams, Navigate, useLocation } from 'react-router-dom';
 import { DataProvider, useData } from './context/DataContext';
 import Layout from './components/Layout';
 import Tooltip from './components/Tooltip';
@@ -991,7 +991,7 @@ const ItemDetail = () => {
 const App: React.FC = () => {
   return (
     <DataProvider>
-      <HashRouter>
+      <BrowserRouter>
         <ScrollToTop />
         <GlobalToastContainer />
         <Routes>
@@ -1011,7 +1011,7 @@ const App: React.FC = () => {
           
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </HashRouter>
+      </BrowserRouter>
     </DataProvider>
   );
 };

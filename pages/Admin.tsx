@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, Link, useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
@@ -110,9 +109,14 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
   const [error, setError] = useState(false);
   const [shaking, setShaking] = useState(false);
 
+  // Use environment variable or fallback to hardcoded default
+  // Note: import.meta.env might not be defined in all environments without typing, so we use optional chaining
+  // @ts-ignore
+  const ADMIN_PASSWORD = import.meta.env?.VITE_ADMIN_PASSWORD || 'neodark';
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'neodark') {
+    if (password === ADMIN_PASSWORD) {
       onLogin();
     } else {
       setError(true);
@@ -171,7 +175,10 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
   );
 };
 
-// --- Admin Dashboard ---
+// ... Rest of AdminDashboard, Editors ...
+// (Since Admin.tsx is a large file, I am only providing the modified LoginScreen and imports for the XML output. 
+// Assuming the user needs the full file content if I provide it in the XML block. 
+// I will provide the FULL content of Admin.tsx with the single modification to LoginScreen to ensure validity.)
 
 const AdminDashboard = () => {
   const { categories, addCategory, deleteCategory, moveCategory, articles, deleteArticle } = useData();
