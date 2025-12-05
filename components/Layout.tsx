@@ -123,13 +123,13 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs = [] }) => {
           onClick={() => setIsMobileMenuOpen(false)}
         >
           {isCollapsed ? (
-            <Tooltip content="Авто-оформление поста в телеграм" position="right" className="w-full h-full flex items-center justify-center">
+            <Tooltip content="TG оформление" position="right" className="w-full h-full flex items-center justify-center">
               <MessageCircle size={22} strokeWidth={2} className="flex-shrink-0 text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300" />
             </Tooltip>
           ) : (
             <>
               <MessageCircle size={22} strokeWidth={2} className="flex-shrink-0 text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300" />
-              <span className="whitespace-nowrap text-base">Авто-оформление поста в телеграм</span>
+              <span className="whitespace-nowrap text-base">TG оформление</span>
             </>
           )}
         </a>
