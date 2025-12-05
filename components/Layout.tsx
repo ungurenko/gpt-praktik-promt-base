@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Link, useLocation, NavLink } from 'react-router-dom';
-import { ChevronRight, Home, Settings, Sun, Menu, Heart, BookOpen, LayoutGrid, PanelLeftClose, PanelLeftOpen, GalleryHorizontal } from 'lucide-react';
+import { ChevronRight, Home, Settings, Sun, Menu, Heart, BookOpen, LayoutGrid, PanelLeftClose, PanelLeftOpen, GalleryHorizontal, MessageCircle } from 'lucide-react';
 import Tooltip from './Tooltip';
 
 interface LayoutProps {
@@ -83,8 +83,8 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs = [] }) => {
             const linkClass = (isActive: boolean) => `
               flex items-center gap-3 p-3.5 rounded-xl transition-all duration-200 font-medium text-base group relative
               ${isCollapsed ? 'justify-center' : ''}
-              ${isActive 
-                ? 'bg-white shadow-sm text-stone-900 dark:bg-white/10 dark:text-white' 
+              ${isActive
+                ? 'bg-white shadow-sm text-stone-900 dark:bg-white/10 dark:text-white'
                 : 'text-stone-500 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-white/5 dark:hover:text-white'
               }
             `;
@@ -109,6 +109,30 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs = [] }) => {
                 </NavLink>
             );
         })}
+
+        {/* Telegram Bot Link */}
+        <a
+          href="https://t.me/TgOformlenie_bot"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`
+            flex items-center gap-3 p-3.5 rounded-xl transition-all duration-200 font-medium text-base group relative
+            ${isCollapsed ? 'justify-center' : ''}
+            text-stone-500 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-white/5 dark:hover:text-white
+          `}
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
+          {isCollapsed ? (
+            <Tooltip content="TG оформление" position="right" className="w-full h-full flex items-center justify-center">
+              <MessageCircle size={22} strokeWidth={2} className="flex-shrink-0 text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300" />
+            </Tooltip>
+          ) : (
+            <>
+              <MessageCircle size={22} strokeWidth={2} className="flex-shrink-0 text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300" />
+              <span className="whitespace-nowrap text-base">TG оформление</span>
+            </>
+          )}
+        </a>
 
       </div>
 
