@@ -300,21 +300,21 @@ const FavoritesPage = () => {
        {favoriteItems.length > 0 ? (
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 animate-enter" style={{ animationDelay: '0.05s' }}>
               {favoriteItems.map(({ item, category, section }) => (
-                <Link 
+                <Link
                   key={item.id}
-                  to={`/category/${category.id}/section/${section.id}/item/${item.id}`}
+                  to={section ? `/category/${category.id}/section/${section.id}/item/${item.id}` : `/category/${category.id}/item/${item.id}`}
                   className="bg-white/70 dark:bg-[#1E1E1E] backdrop-blur-sm p-6 rounded-[2rem] border border-white/60 dark:border-[#2A2A2A] shadow-sm hover:shadow-soft hover:-translate-y-1 transition-all duration-200 group will-change-transform"
                 >
                   <div className="flex justify-between items-start mb-4">
                     <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg ${
-                      item.type === ItemType.ASSISTANT ? 'bg-rose-100 text-rose-600' : (item.type === ItemType.SEQUENCE ? 'bg-violet-100 text-violet-600' : 'bg-orange-100 text-orange-600')
+                      item.type === ItemType.ASSISTANT ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400' : (item.type === ItemType.SEQUENCE ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400')
                     }`}>
                       {item.type === ItemType.ASSISTANT ? 'Assistant' : (item.type === ItemType.SEQUENCE ? 'Chain' : 'Prompt')}
                     </span>
-                    <ArrowRight size={20} className="text-stone-300 group-hover:text-orange-500 transition-colors" />
+                    <ArrowRight size={20} className="text-stone-300 dark:text-stone-600 group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors" />
                   </div>
                   <h3 className="text-xl font-bold text-stone-800 dark:text-white mb-2 leading-tight group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">{item.title}</h3>
-                  <p className="text-sm text-stone-400 line-clamp-1">{category.title}</p>
+                  <p className="text-sm text-stone-400 dark:text-stone-500 line-clamp-1">{category.title}{section ? ` • ${section.title}` : ''}</p>
                 </Link>
               ))}
            </div>
@@ -467,19 +467,19 @@ const HomePage = () => {
           {searchResults.length > 0 ? (
              <div className="grid gap-5">
                {searchResults.map(({ item, category, section }) => (
-                 <Link 
+                 <Link
                     key={item.id}
-                    to={`/category/${category.id}/section/${section.id}/item/${item.id}`}
+                    to={section ? `/category/${category.id}/section/${section.id}/item/${item.id}` : `/category/${category.id}/item/${item.id}`}
                     className="flex items-center p-6 bg-white/60 dark:bg-[#1E1E1E] rounded-3xl hover:bg-white dark:hover:bg-[#252525] hover:shadow-md transition-all group border border-transparent dark:border-[#2A2A2A] will-change-transform"
                  >
                     <div className={`p-4 rounded-2xl mr-6 ${
-                      item.type === ItemType.ASSISTANT ? 'bg-rose-100 text-rose-500' : (item.type === ItemType.SEQUENCE ? 'bg-violet-100 text-violet-500' : 'bg-orange-100 text-orange-500')
+                      item.type === ItemType.ASSISTANT ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-500 dark:text-rose-400' : (item.type === ItemType.SEQUENCE ? 'bg-violet-100 dark:bg-violet-900/20 text-violet-500 dark:text-violet-400' : 'bg-orange-100 dark:bg-orange-900/20 text-orange-500 dark:text-orange-400')
                     }`}>
                       {item.type === ItemType.ASSISTANT ? <Bot size={24} /> : (item.type === ItemType.SEQUENCE ? <Layers size={24} /> : <FileText size={24} />)}
                     </div>
                     <div>
                       <div className="text-xl font-bold text-stone-800 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors mb-1">{item.title}</div>
-                      <div className="text-sm text-stone-400 font-medium">{category.title} • {section.title}</div>
+                      <div className="text-sm text-stone-400 dark:text-stone-500 font-medium">{category.title}{section ? ` • ${section.title}` : ''}</div>
                     </div>
                  </Link>
                ))}
@@ -598,26 +598,54 @@ const CategoryPage = () => {
       {/* Navigation Top */}
       <PageNav prev={nav.prev} next={nav.next} />
 
-      {category.sections.length === 0 ? (
+      {category.sections.length === 0 && (!category.items || category.items.length === 0) ? (
         <div className="text-center py-32 bg-white/40 dark:bg-[#1E1E1E] backdrop-blur-sm rounded-[2.5rem] border border-dashed border-stone-300/50 dark:border-[#2A2A2A] animate-scale-in">
           <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-white dark:bg-white/10 shadow-sm text-stone-300 mb-6">
             <Sparkles size={40} />
           </div>
-          <p className="text-stone-500 font-medium text-xl">В этой категории пока нет разделов</p>
+          <p className="text-stone-500 dark:text-stone-400 font-medium text-xl">В этой категории пока нет контента</p>
         </div>
       ) : (
         <div className="grid gap-8">
+          {/* Direct Category Items (without sections) */}
+          {category.items && category.items.length > 0 && (
+            <div className="grid gap-6 animate-enter">
+              {category.items.map((item, index) => (
+                <Link
+                  key={item.id}
+                  to={`/category/${category.id}/item/${item.id}`}
+                  className="group flex items-center p-8 bg-white/60 dark:bg-[#1E1E1E] backdrop-blur-md hover:bg-white dark:hover:bg-[#252525] hover:shadow-soft transition-all duration-300 border border-white/50 dark:border-[#2A2A2A] rounded-[2rem] animate-enter will-change-transform"
+                  style={{ animationDelay: `${index * 20}ms` }}
+                >
+                  <div className={`p-5 rounded-2xl mr-6 ${
+                    item.type === ItemType.ASSISTANT ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400' : (item.type === ItemType.SEQUENCE ? 'bg-violet-100 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400' : 'bg-orange-100 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400')
+                  }`}>
+                    {item.type === ItemType.ASSISTANT ? <Bot size={32} /> : (item.type === ItemType.SEQUENCE ? <Layers size={32} /> : <FileText size={32} />)}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-2xl font-bold text-stone-800 dark:text-white mb-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">{item.title}</h3>
+                    <p className="text-base text-stone-500 dark:text-stone-400 leading-relaxed">{item.description}</p>
+                  </div>
+                  <div className="w-14 h-14 rounded-full bg-white dark:bg-white/10 border border-stone-100 dark:border-white/5 flex items-center justify-center text-stone-400 dark:text-stone-500 group-hover:border-orange-400 group-hover:text-orange-500 transition-all duration-300 group-hover:rotate-[-45deg]">
+                    <ArrowRight size={24} />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {/* Sections */}
           {category.sections.map((section, index) => {
             const theme = getSectionTheme(section.title);
             // Use custom icon if available, otherwise fallback to theme icon
             const ThemeIcon = (section.icon && ICON_MAP[section.icon]) ? ICON_MAP[section.icon] : theme.icon;
-            
+
             return (
-              <Link 
-                key={section.id} 
+              <Link
+                key={section.id}
                 to={`/category/${category.id}/section/${section.id}`}
                 className="group relative flex flex-col md:flex-row md:items-center p-10 rounded-[2.5rem] bg-white/60 dark:bg-[#1E1E1E] backdrop-blur-md hover:bg-white dark:hover:bg-[#252525] hover:shadow-soft transition-all duration-300 border border-white/50 dark:border-[#2A2A2A] animate-enter will-change-transform"
-                style={{ animationDelay: `${index * 20}ms` }}
+                style={{ animationDelay: `${(index + (category.items?.length || 0)) * 20}ms` }}
               >
                 <div className="mb-8 md:mb-0 md:mr-10">
                   <div className={`w-28 h-28 rounded-[2rem] bg-gradient-to-br ${theme.bg} ${theme.color} flex items-center justify-center shadow-inner group-hover:shadow-xl group-hover:${theme.shadow} group-hover:scale-105 transition-all duration-300`}>
@@ -631,10 +659,10 @@ const CategoryPage = () => {
                   </p>
                 </div>
                 <div className="mt-8 md:mt-0 flex items-center justify-between md:justify-end w-full md:w-auto gap-8">
-                  <div className="text-sm font-bold text-stone-300 dark:text-stone-500 uppercase tracking-widest group-hover:text-stone-400 transition-colors">
+                  <div className="text-sm font-bold text-stone-300 dark:text-stone-500 uppercase tracking-widest group-hover:text-stone-400 dark:group-hover:text-stone-400 transition-colors">
                     {section.items.length} {section.items.length === 1 ? 'элемент' : 'элемента'}
                   </div>
-                  <div className="w-14 h-14 rounded-full bg-white dark:bg-white/10 border border-stone-100 dark:border-white/5 flex items-center justify-center text-stone-400 group-hover:border-orange-400 group-hover:text-orange-500 transition-all duration-300 group-hover:rotate-[-45deg]">
+                  <div className="w-14 h-14 rounded-full bg-white dark:bg-white/10 border border-stone-100 dark:border-white/5 flex items-center justify-center text-stone-400 dark:text-stone-500 group-hover:border-orange-400 group-hover:text-orange-500 transition-all duration-300 group-hover:rotate-[-45deg]">
                     <ArrowRight size={24} />
                   </div>
                 </div>
@@ -763,10 +791,182 @@ const SectionPage = () => {
   );
 };
 
+// Category Item Detail (for items directly in category, no section)
+const CategoryItemDetail = () => {
+  const { categoryId, itemId } = useParams<{ categoryId: string; itemId: string }>();
+  const { getCategory, getCategoryItem, toggleFavorite, isFavorite } = useData();
+
+  const category = useMemo(() => getCategory(categoryId || ''), [categoryId, getCategory]);
+  const item = useMemo(() => getCategoryItem(categoryId || '', itemId || ''), [categoryId, itemId, getCategoryItem]);
+
+  // Timeline State for Sequence
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+
+  // Reset timeline when item changes
+  useEffect(() => {
+    setCompletedSteps(new Set());
+  }, [item?.id]);
+
+  const toggleStep = (idx: number) => {
+    const newSet = new Set(completedSteps);
+    if (newSet.has(idx)) {
+      newSet.delete(idx);
+    } else {
+      newSet.add(idx);
+    }
+    setCompletedSteps(newSet);
+  };
+
+  if (!category || !item) return <Navigate to="/" />;
+
+  const isAssistant = item.type === ItemType.ASSISTANT;
+  const isSequence = item.type === ItemType.SEQUENCE;
+  const favorite = isFavorite(item.id);
+
+  return (
+    <Layout breadcrumbs={[
+      { label: category.title, to: `/category/${category.id}` },
+      { label: item.title }
+    ]}>
+
+      <div className="flex flex-col 2xl:flex-row gap-10 2xl:gap-20 items-start max-w-[1400px] mx-auto">
+
+        {/* LEFT COLUMN: Context, Instructions, Description */}
+        <div className="w-full 2xl:w-[35%] flex flex-col gap-8 animate-enter">
+
+          {/* Header Meta */}
+          <div className="flex items-center justify-between">
+             <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold tracking-wide shadow-sm border border-white/50 backdrop-blur-sm dark:border-white/10 ${
+              isAssistant
+                ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400'
+                : (isSequence ? 'bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400' : 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400')
+             }`}>
+              {isAssistant ? <Bot size={18} /> : (isSequence ? <Layers size={18} /> : <FileText size={18} />)}
+              {isAssistant ? 'GPT ASSISTANT' : (isSequence ? 'SEQUENCE' : 'PROMPT')}
+             </div>
+
+             <Tooltip content={favorite ? "Убрать из избранного" : "В избранное"} position="left">
+               <button
+                 onClick={() => toggleFavorite(item.id)}
+                 className={`p-3 rounded-full transition-all shadow-sm border ${favorite ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-500 text-rose-500 dark:text-rose-400' : 'bg-white dark:bg-white/5 border-stone-100 dark:border-white/10 text-stone-400 dark:text-stone-500 hover:text-rose-500 dark:hover:text-rose-400 hover:border-rose-100 dark:hover:border-rose-500'}`}
+               >
+                  <Heart size={24} className={favorite ? "fill-rose-500 dark:fill-rose-400" : ""} />
+               </button>
+             </Tooltip>
+          </div>
+
+          {/* Title & Desc */}
+          <div>
+            <h1 className="text-4xl md:text-6xl font-extrabold text-stone-800 dark:text-white mb-6 leading-tight tracking-tight text-left">
+              {item.title}
+            </h1>
+            <p className="text-xl text-stone-500 dark:text-stone-400 leading-relaxed font-light text-left">
+              {item.description}
+            </p>
+          </div>
+
+          {/* Instructions Block */}
+          {item.instructions && (
+            <section className="bg-white/60 dark:bg-[#1E1E1E] backdrop-blur-md rounded-[2.5rem] p-8 shadow-sm border border-white/50 dark:border-[#2A2A2A] mt-4">
+              <h3 className="text-xs font-black text-stone-400 dark:text-stone-500 uppercase tracking-widest mb-5 flex items-center gap-2">
+                <Info size={16} />
+                Инструкция
+              </h3>
+              <div className="prose prose-stone dark:prose-invert prose-lg max-w-none text-stone-600 dark:text-stone-300 leading-loose whitespace-pre-line">
+                {item.instructions}
+              </div>
+            </section>
+          )}
+        </div>
+
+        {/* RIGHT COLUMN: The Prompt (Sticky) */}
+        <div className="w-full 2xl:w-[65%] 2xl:sticky 2xl:top-32 animate-enter" style={{ animationDelay: '0.1s' }}>
+
+          {isSequence ? (
+             <div className="relative pl-6 pb-20">
+               {/* Reusing same sequence logic as ItemDetail */}
+               <div className="absolute left-6 top-8 bottom-0 w-1 bg-gradient-to-b from-violet-200 via-stone-200 to-transparent dark:from-violet-900/50 dark:via-white/5 z-0 rounded-full" />
+
+               {(item.subPrompts || []).map((sub, idx) => {
+                 const isCompleted = completedSteps.has(idx);
+                 const isLocked = idx > 0 && !completedSteps.has(idx - 1);
+                 const isActive = !isCompleted && !isLocked;
+
+                 return (
+                   <div
+                      key={idx}
+                      className={`relative z-10 mb-16 last:mb-0 transition-all duration-500 ${isLocked ? 'opacity-40 blur-[2px] pointer-events-none grayscale' : 'opacity-100'}`}
+                   >
+                     <div className="flex items-center gap-6 mb-6">
+                       <button
+                          onClick={() => toggleStep(idx)}
+                          disabled={isLocked}
+                          className={`
+                            w-12 h-12 rounded-full flex items-center justify-center border-4 shadow-lg transition-all duration-300 z-20 relative
+                            ${isCompleted
+                               ? 'bg-emerald-500 border-emerald-200 dark:border-emerald-700 text-white scale-90'
+                               : (isActive ? 'bg-white dark:bg-stone-800 border-violet-500 text-violet-500 dark:text-violet-400 scale-110 shadow-violet-200 dark:shadow-violet-900' : 'bg-stone-100 dark:bg-white/10 border-stone-200 dark:border-stone-700 text-stone-400 dark:text-stone-500')
+                            }
+                          `}
+                       >
+                         {isCompleted ? <Check size={20} strokeWidth={4} /> : (isLocked ? <Lock size={18} /> : <div className="font-bold text-lg">{idx + 1}</div>)}
+                       </button>
+
+                       <div className="flex-1">
+                          <h4 className={`text-2xl font-bold transition-colors ${isCompleted ? 'text-stone-400 dark:text-stone-600 line-through' : 'text-stone-800 dark:text-white'}`}>
+                            {sub.title}
+                          </h4>
+                          {isActive && (
+                            <div className="text-violet-500 dark:text-violet-400 text-xs font-bold uppercase tracking-widest mt-1 animate-pulse">Текущий шаг</div>
+                          )}
+                       </div>
+
+                       <div className="mr-2">
+                          <button
+                            onClick={() => toggleStep(idx)}
+                            className={`px-5 py-2 rounded-xl text-sm font-bold border transition-all flex items-center gap-2 ${
+                              isCompleted
+                              ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/30'
+                              : 'bg-white dark:bg-white/5 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-white/10 hover:border-violet-300 dark:hover:border-violet-500 hover:text-violet-600 dark:hover:text-violet-400'
+                            }`}
+                          >
+                             {isCompleted ? 'Выполнено' : 'Отметить'}
+                             {isCompleted ? <CheckCircle size={16} /> : <Circle size={16} />}
+                          </button>
+                       </div>
+                     </div>
+
+                     <PromptRenderer content={sub.content} isAssistant={false} title={`Шаг ${idx + 1}: ${sub.title}`} />
+                   </div>
+                 );
+               })}
+             </div>
+          ) : (
+             <>
+               <PromptRenderer content={item.content} isAssistant={isAssistant} />
+
+               {isAssistant && item.subPrompts && item.subPrompts.length > 0 && (
+                 <div className="mt-16 space-y-10">
+                    <h3 className="text-2xl font-bold text-stone-800 dark:text-white">Дополнительные промты</h3>
+                    {item.subPrompts.map((sub, idx) => (
+                      <div key={idx}>
+                        <PromptRenderer content={sub.content} isAssistant={false} title={sub.title} />
+                      </div>
+                    ))}
+                 </div>
+               )}
+             </>
+          )}
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
 const ItemDetail = () => {
   const { categoryId, sectionId, itemId } = useParams<{ categoryId: string; sectionId: string; itemId: string }>();
   const { getCategory, getSection, getItem, toggleFavorite, isFavorite } = useData();
-  
+
   const category = useMemo(() => getCategory(categoryId || ''), [categoryId, getCategory]);
   const section = useMemo(() => getSection(categoryId || '', sectionId || ''), [categoryId, sectionId, getSection]);
   const item = useMemo(() => getItem(categoryId || '', sectionId || '', itemId || ''), [categoryId, sectionId, itemId, getItem]);
@@ -983,6 +1183,7 @@ const App: React.FC = () => {
           <Route path="/instructions/:articleId" element={<ArticleDetailPage />} />
           
           <Route path="/category/:categoryId" element={<CategoryPage />} />
+          <Route path="/category/:categoryId/item/:itemId" element={<CategoryItemDetail />} />
           <Route path="/category/:categoryId/section/:sectionId" element={<SectionPage />} />
           <Route path="/category/:categoryId/section/:sectionId/item/:itemId" element={<ItemDetail />} />
           

@@ -70,6 +70,7 @@ interface DataContextType {
   getCategory: (id: string) => Category | undefined;
   getSection: (catId: string, secId: string) => Section | undefined;
   getItem: (catId: string, secId: string, itemId: string) => PromptItem | undefined;
+  getCategoryItem: (catId: string, itemId: string) => PromptItem | undefined;
   getArticle: (id: string) => Article | undefined;
   // Write - Category
   addCategory: (category: Category) => void;
@@ -80,23 +81,27 @@ interface DataContextType {
   addSection: (catId: string, section: Section) => void;
   updateSection: (catId: string, secId: string, data: Partial<Section>) => void;
   deleteSection: (catId: string, secId: string) => void;
-  // Write - Item
+  // Write - Item (in Section)
   addItem: (catId: string, secId: string, item: PromptItem) => void;
   updateItem: (catId: string, secId: string, itemId: string, data: Partial<PromptItem>) => void;
   deleteItem: (catId: string, secId: string, itemId: string) => void;
+  // Write - Category Item (Direct, no section)
+  addCategoryItem: (catId: string, item: PromptItem) => void;
+  updateCategoryItem: (catId: string, itemId: string, data: Partial<PromptItem>) => void;
+  deleteCategoryItem: (catId: string, itemId: string) => void;
   // Write - Article
   addArticle: (article: Article) => void;
   updateArticle: (id: string, data: Partial<Article>) => void;
   deleteArticle: (id: string) => void;
   // Favorites
-  favorites: string[]; 
+  favorites: string[];
   toggleFavorite: (itemId: string) => void;
   isFavorite: (itemId: string) => boolean;
-  getFavoriteItems: () => { item: PromptItem, category: Category, section: Section }[];
+  getFavoriteItems: () => { item: PromptItem, category: Category, section?: Section }[];
   // Search
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  searchResults: { item: PromptItem, category: Category, section: Section }[];
+  searchResults: { item: PromptItem, category: Category, section?: Section }[];
   // Toasts
   toasts: Toast[];
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
@@ -201,6 +206,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 subPrompts: item.sub_prompts, // Map snake_case from DB
                 index: item.index
               }))
+          })),
+        // Direct category items (without section)
+        items: (itemsRes.data || [])
+          .filter(item => item.category_id === cat.id && !item.section_id)
+          .map(item => ({
+            id: item.id,
+            title: item.title,
+            description: item.description,
+            instructions: item.instructions,
+            content: item.content,
+            type: item.type as ItemType,
+            subPrompts: item.sub_prompts,
+            index: item.index
           }))
       }));
 
@@ -515,6 +533,70 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await supabase.from('items').delete().eq('id', itemId);
   };
 
+  // Write - Category Items (Direct, without section)
+  const addCategoryItem = async (catId: string, item: PromptItem) => {
+    const cat = categories.find(c => c.id === catId);
+    if (!cat) return;
+
+    const newItem = {
+        id: item.id,
+        section_id: null, // No section - direct category item
+        category_id: catId, // Link directly to category
+        title: item.title,
+        description: item.description,
+        instructions: item.instructions,
+        content: item.content,
+        type: item.type,
+        sub_prompts: item.subPrompts,
+        index: (cat.items || []).length
+    };
+
+    const updated = categories.map(c => {
+      if (c.id !== catId) return c;
+      return { ...c, items: [...(c.items || []), item] };
+    });
+    setCategories(updated);
+    refreshCache(updated, articles);
+
+    const { error } = await supabase.from('items').insert([newItem]);
+    if (error) console.error(error);
+  };
+
+  const updateCategoryItem = async (catId: string, itemId: string, data: Partial<PromptItem>) => {
+    const updated = categories.map(c => {
+      if (c.id !== catId) return c;
+      return {
+        ...c,
+        items: (c.items || []).map(i => i.id === itemId ? { ...i, ...data } : i)
+      };
+    });
+    setCategories(updated);
+    refreshCache(updated, articles);
+
+    // Map TS fields to DB fields
+    const dbUpdate: any = { ...data };
+    if (data.subPrompts) {
+        dbUpdate.sub_prompts = data.subPrompts;
+        delete dbUpdate.subPrompts;
+    }
+
+    const { error } = await supabase.from('items').update(dbUpdate).eq('id', itemId);
+    if (error) console.error(error);
+  };
+
+  const deleteCategoryItem = async (catId: string, itemId: string) => {
+    const updated = categories.map(c => {
+      if (c.id !== catId) return c;
+      return {
+        ...c,
+        items: (c.items || []).filter(i => i.id !== itemId)
+      };
+    });
+    setCategories(updated);
+    refreshCache(updated, articles);
+    await supabase.from('items').delete().eq('id', itemId);
+  };
+
   // Write - Articles
   const addArticle = async (article: Article) => {
     const updated = [article, ...articles];
@@ -575,10 +657,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const isFavorite = (itemId: string) => favorites.includes(itemId);
 
-  // Cache flattened items
+  // Cache flattened items (including direct category items)
   const allItemsCache = useMemo(() => {
-    const results: { item: PromptItem, category: Category, section: Section }[] = [];
+    const results: { item: PromptItem, category: Category, section?: Section }[] = [];
     categories.forEach(cat => {
+      // Add direct category items (without section)
+      if (cat.items) {
+        cat.items.forEach(item => {
+          results.push({ item, category: cat });
+        });
+      }
+      // Add section items
       cat.sections.forEach(sec => {
         sec.items.forEach(item => {
           results.push({ item, category: cat, section: sec });
@@ -605,16 +694,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const getCategory = (id: string) => categories.find(c => c.id === id);
   const getSection = (catId: string, secId: string) => getCategory(catId)?.sections.find(s => s.id === secId);
   const getItem = (catId: string, secId: string, itemId: string) => getSection(catId, secId)?.items.find(i => i.id === itemId);
+  const getCategoryItem = (catId: string, itemId: string) => getCategory(catId)?.items?.find(i => i.id === itemId);
   const getArticle = (id: string) => articles.find(a => a.id === id);
 
   return (
     <DataContext.Provider value={{
       categories,
       articles,
-      getCategory, getSection, getItem, getArticle,
+      getCategory, getSection, getItem, getCategoryItem, getArticle,
       addCategory, updateCategory, deleteCategory, moveCategory,
       addSection, updateSection, deleteSection,
       addItem, updateItem, deleteItem,
+      addCategoryItem, updateCategoryItem, deleteCategoryItem,
       addArticle, updateArticle, deleteArticle,
       favorites, toggleFavorite, isFavorite, getFavoriteItems,
       searchQuery, setSearchQuery, searchResults,
