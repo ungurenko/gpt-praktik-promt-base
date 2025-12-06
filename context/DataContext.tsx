@@ -174,9 +174,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ]);
 
       if (catsRes.error) throw catsRes.error;
-      
-      // Check if DB is empty and we need to seed
-      if (catsRes.data?.length === 0 && retrySeeding) {
+
+      // Check if DB is COMPLETELY empty (all tables) and we need to seed
+      // This prevents accidental re-seeding if user has added data
+      const isDatabaseEmpty = catsRes.data?.length === 0 &&
+                             secsRes.data?.length === 0 &&
+                             itemsRes.data?.length === 0;
+
+      if (isDatabaseEmpty && retrySeeding) {
+          console.log("Database is completely empty. Running initial seed...");
           await seedDatabase();
           // Recursively fetch again, but don't retry seeding to avoid infinite loop
           return fetchRemoteData(false);
@@ -243,19 +249,21 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const seedDatabase = async () => {
     console.log("Seeding Database...");
-    
-    // Seed Categories
+
+    // Seed Categories - use upsert with ignoreDuplicates to prevent overwriting
     const catRows = INITIAL_DATA.map((c, idx) => ({
-      id: c.id, 
-      title: c.title, 
-      description: c.description, 
-      theme: c.theme, 
+      id: c.id,
+      title: c.title,
+      description: c.description,
+      theme: c.theme,
       index: idx
     }));
-    const { error: catError } = await supabase.from('categories').insert(catRows);
+    const { error: catError } = await supabase
+      .from('categories')
+      .upsert(catRows, { onConflict: 'id', ignoreDuplicates: true });
     if (catError) console.error("Error seeding categories:", catError);
 
-    // Seed Sections
+    // Seed Sections - only insert if they don't exist
     const secRows: any[] = [];
     INITIAL_DATA.forEach(c => {
       c.sections.forEach((s, sIdx) => {
@@ -270,9 +278,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       });
     });
-    if (secRows.length > 0) await supabase.from('sections').insert(secRows);
+    if (secRows.length > 0) {
+      await supabase
+        .from('sections')
+        .upsert(secRows, { onConflict: 'id', ignoreDuplicates: true });
+    }
 
-    // Seed Items
+    // Seed Items - only insert if they don't exist
     const itemRows: any[] = [];
     INITIAL_DATA.forEach(c => {
       c.sections.forEach(s => {
@@ -291,9 +303,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       });
     });
-    if (itemRows.length > 0) await supabase.from('items').insert(itemRows);
+    if (itemRows.length > 0) {
+      await supabase
+        .from('items')
+        .upsert(itemRows, { onConflict: 'id', ignoreDuplicates: true });
+    }
 
-    // Seed Articles
+    // Seed Articles - only insert if they don't exist
     const artRows = INITIAL_ARTICLES.map(a => ({
       id: a.id,
       title: a.title,
@@ -303,7 +319,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       date: a.date,
       blocks: a.blocks
     }));
-    await supabase.from('articles').insert(artRows);
+    await supabase
+      .from('articles')
+      .upsert(artRows, { onConflict: 'id', ignoreDuplicates: true });
     console.log("Seeding complete.");
   };
 
