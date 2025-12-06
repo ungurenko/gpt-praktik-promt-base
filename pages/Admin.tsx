@@ -16,9 +16,9 @@ import { ICON_MAP } from '../App'; // Import icon map from App
 
 const Input = ({ label, ...props }: any) => (
   <div className="mb-6">
-    <label className="block text-sm font-bold text-stone-500 uppercase tracking-wider mb-2.5 ml-1">{label}</label>
-    <input 
-      className="w-full bg-white border border-stone-200 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 rounded-2xl px-5 py-4 transition-all outline-none text-stone-800 placeholder-stone-300 text-base font-medium shadow-sm"
+    <label className="block text-sm font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2.5 ml-1">{label}</label>
+    <input
+      className="w-full bg-white dark:bg-white/5 border border-stone-200 dark:border-white/10 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 dark:focus:ring-orange-500/20 rounded-2xl px-5 py-4 transition-all outline-none text-stone-800 dark:text-white placeholder-stone-300 dark:placeholder-stone-500 text-base font-medium shadow-sm"
       {...props}
     />
   </div>
@@ -26,10 +26,10 @@ const Input = ({ label, ...props }: any) => (
 
 const TextArea = ({ label, rows = 3, ...props }: any) => (
   <div className="mb-6">
-    <label className="block text-sm font-bold text-stone-500 uppercase tracking-wider mb-2.5 ml-1">{label}</label>
-    <textarea 
+    <label className="block text-sm font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2.5 ml-1">{label}</label>
+    <textarea
       rows={rows}
-      className="w-full bg-white border border-stone-200 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 rounded-2xl px-5 py-4 transition-all outline-none text-stone-800 placeholder-stone-400 text-base font-medium shadow-sm resize-y"
+      className="w-full bg-white dark:bg-white/5 border border-stone-200 dark:border-white/10 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 dark:focus:ring-orange-500/20 rounded-2xl px-5 py-4 transition-all outline-none text-stone-800 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 text-base font-medium shadow-sm resize-y"
       {...props}
     />
   </div>
@@ -38,10 +38,10 @@ const TextArea = ({ label, rows = 3, ...props }: any) => (
 const Button = ({ children, variant = 'primary', className = '', ...props }: any) => {
   const baseStyle = "px-6 py-3.5 rounded-xl font-bold text-base transition-all duration-200 transform active:scale-95 flex items-center justify-center gap-2 tracking-wide";
   const variants = {
-    primary: "bg-stone-900 hover:bg-black text-white shadow-lg shadow-stone-200 hover:shadow-xl hover:-translate-y-0.5",
-    secondary: "bg-white hover:bg-stone-50 text-stone-600 border border-stone-200 shadow-sm hover:text-stone-900 hover:border-stone-300",
-    danger: "bg-white hover:bg-rose-50 text-rose-500 border border-rose-100 shadow-sm hover:border-rose-200 hover:shadow-rose-100",
-    ghost: "bg-transparent hover:bg-stone-100 text-stone-500"
+    primary: "bg-stone-900 hover:bg-black text-white shadow-lg shadow-stone-200 dark:shadow-none hover:shadow-xl hover:-translate-y-0.5 dark:bg-white dark:text-black dark:hover:bg-stone-100",
+    secondary: "bg-white hover:bg-stone-50 text-stone-600 border border-stone-200 shadow-sm hover:text-stone-900 hover:border-stone-300 dark:bg-white/10 dark:text-white dark:border-white/20 dark:hover:bg-white/20 dark:hover:border-white/30",
+    danger: "bg-white hover:bg-rose-50 text-rose-500 border border-rose-100 shadow-sm hover:border-rose-200 hover:shadow-rose-100 dark:bg-rose-900/20 dark:text-rose-400 dark:border-rose-800/30 dark:hover:bg-rose-900/30",
+    ghost: "bg-transparent hover:bg-stone-100 text-stone-500 dark:hover:bg-white/10 dark:text-stone-400"
   };
   return (
     <button className={`${baseStyle} ${variants[variant as keyof typeof variants]} ${className}`} {...props}>
@@ -51,7 +51,7 @@ const Button = ({ children, variant = 'primary', className = '', ...props }: any
 };
 
 const Card = ({ children, className = "" }: { children?: React.ReactNode, className?: string }) => (
-  <div className={`bg-white/80 backdrop-blur-xl rounded-[2rem] p-10 shadow-soft border border-white/50 ${className}`}>
+  <div className={`bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-[2rem] p-10 shadow-soft dark:shadow-none border border-white/50 dark:border-white/10 ${className}`}>
     {children}
   </div>
 );
@@ -66,16 +66,16 @@ const IconPicker = ({ selected, onChange }: { selected?: string, onChange: (icon
     return (
         <div className="space-y-4">
             <div className="relative">
-                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" />
-                <input 
-                    type="text" 
-                    placeholder="Поиск иконки..." 
+                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500" />
+                <input
+                    type="text"
+                    placeholder="Поиск иконки..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-stone-50 border border-stone-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-300 transition-all text-sm font-medium"
+                    className="w-full pl-12 pr-4 py-3 bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-orange-100 dark:focus:ring-orange-500/20 focus:border-orange-300 transition-all text-sm font-medium text-stone-800 dark:text-white placeholder-stone-400 dark:placeholder-stone-500"
                 />
             </div>
-            <div className="grid grid-cols-6 sm:grid-cols-8 gap-3 max-h-48 overflow-y-auto p-2 border border-stone-100 rounded-2xl bg-stone-50/50 custom-scrollbar">
+            <div className="grid grid-cols-6 sm:grid-cols-8 gap-3 max-h-48 overflow-y-auto p-2 border border-stone-100 dark:border-white/10 rounded-2xl bg-stone-50/50 dark:bg-white/5 custom-scrollbar">
                 {filteredIcons.map(iconKey => {
                     const IconComp = ICON_MAP[iconKey];
                     const isSelected = selected === iconKey;
@@ -84,7 +84,7 @@ const IconPicker = ({ selected, onChange }: { selected?: string, onChange: (icon
                             key={iconKey}
                             onClick={() => onChange(iconKey)}
                             title={iconKey}
-                            className={`aspect-square flex items-center justify-center rounded-xl transition-all ${isSelected ? 'bg-stone-800 text-white shadow-md scale-105' : 'bg-white text-stone-500 hover:bg-orange-50 hover:text-orange-500 hover:shadow-sm'}`}
+                            className={`aspect-square flex items-center justify-center rounded-xl transition-all ${isSelected ? 'bg-stone-800 dark:bg-white text-white dark:text-black shadow-md scale-105' : 'bg-white dark:bg-white/10 text-stone-500 dark:text-stone-400 hover:bg-orange-50 dark:hover:bg-orange-500/20 hover:text-orange-500 hover:shadow-sm'}`}
                         >
                             <IconComp size={20} strokeWidth={isSelected ? 2 : 1.5} />
                         </button>
@@ -92,10 +92,10 @@ const IconPicker = ({ selected, onChange }: { selected?: string, onChange: (icon
                 })}
             </div>
             {selected && (
-                <div className="flex items-center gap-2 text-sm text-stone-500">
+                <div className="flex items-center gap-2 text-sm text-stone-500 dark:text-stone-400">
                     <span>Выбрано:</span>
-                    <span className="font-mono bg-stone-100 px-2 py-0.5 rounded text-stone-800 font-bold">{selected}</span>
-                    <button onClick={() => onChange('')} className="text-xs text-rose-500 hover:underline ml-auto">Сбросить</button>
+                    <span className="font-mono bg-stone-100 dark:bg-white/10 px-2 py-0.5 rounded text-stone-800 dark:text-white font-bold">{selected}</span>
+                    <button onClick={() => onChange('')} className="text-xs text-rose-500 dark:text-rose-400 hover:underline ml-auto">Сбросить</button>
                 </div>
             )}
         </div>
@@ -131,7 +131,7 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
   return (
     <Layout>
       <div className="min-h-[60vh] flex items-center justify-center p-4 animate-enter">
-        <div className={`w-full max-w-md bg-white/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border border-white/50 p-12 text-center transition-transform duration-100 ${shaking ? 'translate-x-[-10px]' : ''} ${shaking ? 'translate-x-[10px]' : ''}`} style={shaking ? { animation: 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both' } : {}}>
+        <div className={`w-full max-w-md bg-white/80 dark:bg-[#1E1E1E]/95 backdrop-blur-xl rounded-[2.5rem] shadow-2xl dark:shadow-none border border-white/50 dark:border-white/10 p-12 text-center transition-transform duration-100 ${shaking ? 'translate-x-[-10px]' : ''} ${shaking ? 'translate-x-[10px]' : ''}`} style={shaking ? { animation: 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both' } : {}}>
            <style>{`
             @keyframes shake {
               10%, 90% { transform: translate3d(-1px, 0, 0); }
@@ -140,31 +140,31 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
               40%, 60% { transform: translate3d(4px, 0, 0); }
             }
            `}</style>
-           
-           <div className="w-24 h-24 bg-stone-900 rounded-3xl mx-auto mb-8 flex items-center justify-center shadow-xl shadow-stone-200 text-white">
+
+           <div className="w-24 h-24 bg-stone-900 dark:bg-white rounded-3xl mx-auto mb-8 flex items-center justify-center shadow-xl shadow-stone-200 dark:shadow-none text-white dark:text-black">
               <Lock size={40} strokeWidth={2.5} />
            </div>
-           
-           <h1 className="text-3xl font-extrabold text-stone-800 mb-3">Панель управления</h1>
-           <p className="text-lg text-stone-500 mb-10 font-medium">Введите пароль администратора</p>
-           
+
+           <h1 className="text-3xl font-extrabold text-stone-800 dark:text-white mb-3">Панель управления</h1>
+           <p className="text-lg text-stone-500 dark:text-stone-400 mb-10 font-medium">Введите пароль администратора</p>
+
            <form onSubmit={handleSubmit} className="relative">
-              <input 
-                type="password" 
+              <input
+                type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Пароль"
-                className={`w-full bg-stone-50 border-2 rounded-2xl px-6 py-5 outline-none font-bold text-xl text-stone-800 text-center tracking-widest placeholder-stone-300 focus:bg-white transition-all ${error ? 'border-rose-300 ring-4 ring-rose-100' : 'border-stone-100 focus:border-stone-300 focus:ring-4 focus:ring-stone-100'}`}
+                className={`w-full bg-stone-50 dark:bg-white/5 border-2 rounded-2xl px-6 py-5 outline-none font-bold text-xl text-stone-800 dark:text-white text-center tracking-widest placeholder-stone-300 dark:placeholder-stone-600 focus:bg-white dark:focus:bg-white/10 transition-all ${error ? 'border-rose-300 dark:border-rose-500 ring-4 ring-rose-100 dark:ring-rose-500/20' : 'border-stone-100 dark:border-white/20 focus:border-stone-300 dark:focus:border-white/30 focus:ring-4 focus:ring-stone-100 dark:focus:ring-white/10'}`}
                 autoFocus
               />
-              <button 
+              <button
                 type="submit"
-                className="w-full mt-6 bg-stone-900 text-white font-bold py-5 rounded-2xl hover:bg-black hover:shadow-lg hover:-translate-y-0.5 transition-all active:scale-95 flex items-center justify-center gap-2 text-lg"
+                className="w-full mt-6 bg-stone-900 dark:bg-white text-white dark:text-black font-bold py-5 rounded-2xl hover:bg-black dark:hover:bg-stone-100 hover:shadow-lg hover:-translate-y-0.5 transition-all active:scale-95 flex items-center justify-center gap-2 text-lg"
               >
                 Войти
               </button>
               {error && (
-                <div className="absolute -bottom-10 left-0 right-0 text-rose-500 text-sm font-bold uppercase tracking-wider animate-pulse">
+                <div className="absolute -bottom-10 left-0 right-0 text-rose-500 dark:text-rose-400 text-sm font-bold uppercase tracking-wider animate-pulse">
                   Неверный пароль
                 </div>
               )}
@@ -222,8 +222,8 @@ const AdminDashboard = () => {
     <Layout breadcrumbs={[{ label: 'Dashboard' }]}>
       <div className="flex justify-between items-end mb-12 animate-enter">
         <div>
-          <h1 className="text-5xl font-extrabold text-stone-900 mb-2 tracking-tight">Панель управления</h1>
-          <p className="text-xl text-stone-500 font-light">Управляйте структурой и контентом базы знаний</p>
+          <h1 className="text-5xl font-extrabold text-stone-900 dark:text-white mb-2 tracking-tight">Панель управления</h1>
+          <p className="text-xl text-stone-500 dark:text-stone-400 font-light">Управляйте структурой и контентом базы знаний</p>
         </div>
         <div className="flex gap-4">
            <Tooltip content="Выйти из системы" position="bottom">
@@ -238,8 +238,8 @@ const AdminDashboard = () => {
          {/* Left: Categories */}
          <div>
            <div className="flex items-center justify-between mb-8">
-             <h2 className="text-2xl font-bold text-stone-800 flex items-center gap-3">
-               <Folder className="text-stone-400" size={24} /> Категории
+             <h2 className="text-2xl font-bold text-stone-800 dark:text-white flex items-center gap-3">
+               <Folder className="text-stone-400 dark:text-stone-500" size={24} /> Категории
              </h2>
              <Button onClick={handleCreate} variant="secondary" className="!py-2.5 !px-5 !text-sm">
                <Plus size={18} /> Добавить
@@ -267,28 +267,28 @@ const AdminDashboard = () => {
                      setDraggedIndex(null);
                  }}
                  onDragEnd={() => setDraggedIndex(null)}
-                 className={`group flex items-center bg-white p-5 pr-6 rounded-[1.5rem] border transition-all duration-300 cursor-grab active:cursor-grabbing ${
-                   draggedIndex === idx 
-                     ? 'opacity-40 border-dashed border-stone-300 bg-stone-50 scale-[0.98]' 
-                     : 'border-stone-100 hover:border-orange-100 hover:shadow-soft'
+                 className={`group flex items-center bg-white dark:bg-white/5 p-5 pr-6 rounded-[1.5rem] border transition-all duration-300 cursor-grab active:cursor-grabbing ${
+                   draggedIndex === idx
+                     ? 'opacity-40 border-dashed border-stone-300 dark:border-white/20 bg-stone-50 dark:bg-white/10 scale-[0.98]'
+                     : 'border-stone-100 dark:border-white/10 hover:border-orange-100 dark:hover:border-orange-500/30 hover:shadow-soft'
                  }`}
                >
-                 <div className="mr-4 text-stone-300 cursor-grab active:cursor-grabbing">
+                 <div className="mr-4 text-stone-300 dark:text-stone-600 cursor-grab active:cursor-grabbing">
                    <GripVertical size={20} />
                  </div>
-                 <div className={`w-14 h-14 rounded-2xl mr-5 bg-stone-50 border border-stone-100 flex items-center justify-center transition-colors duration-300 group-hover:bg-white group-hover:shadow-sm`}>
+                 <div className={`w-14 h-14 rounded-2xl mr-5 bg-stone-50 dark:bg-white/10 border border-stone-100 dark:border-white/20 flex items-center justify-center transition-colors duration-300 group-hover:bg-white dark:group-hover:bg-white/20 group-hover:shadow-sm`}>
                     <LayoutIcon size={24} className={`${getThemeColorClass(cat.theme)} opacity-70 group-hover:opacity-100 transition-opacity`} />
                  </div>
 
                  <div className="flex-1 py-1">
-                   <h3 className="font-bold text-stone-800 text-lg mb-1 group-hover:text-orange-600 transition-colors">{cat.title}</h3>
-                   <p className="text-sm text-stone-400 font-medium">{cat.sections.length} разделов</p>
+                   <h3 className="font-bold text-stone-800 dark:text-white text-lg mb-1 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">{cat.title}</h3>
+                   <p className="text-sm text-stone-400 dark:text-stone-500 font-medium">{cat.sections.length} разделов</p>
                  </div>
                  <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300">
                    <Button variant="secondary" className="!px-4 !py-2 !text-sm" onClick={() => navigate(`/admin/category/${cat.id}`)}>
                      Изменить
                    </Button>
-                   <button onClick={() => deleteCategory(cat.id)} className="p-3 rounded-xl text-stone-300 hover:bg-rose-50 hover:text-rose-500 transition-colors">
+                   <button onClick={() => deleteCategory(cat.id)} className="p-3 rounded-xl text-stone-300 dark:text-stone-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-500 dark:hover:text-rose-400 transition-colors">
                      <Trash2 size={20} />
                    </button>
                  </div>
@@ -300,8 +300,8 @@ const AdminDashboard = () => {
          {/* Right: Articles / Instructions */}
          <div>
             <div className="flex items-center justify-between mb-8">
-             <h2 className="text-2xl font-bold text-stone-800 flex items-center gap-3">
-               <BookOpen className="text-stone-400" size={24} /> Инструкции
+             <h2 className="text-2xl font-bold text-stone-800 dark:text-white flex items-center gap-3">
+               <BookOpen className="text-stone-400 dark:text-stone-500" size={24} /> Инструкции
              </h2>
              <Button onClick={handleCreateArticle} variant="primary" className="!py-2.5 !px-5 !text-sm">
                <Plus size={18} /> Написать статью
@@ -309,22 +309,22 @@ const AdminDashboard = () => {
            </div>
            <div className="grid gap-4 animate-enter" style={{ animationDelay: '0.2s' }}>
              {articles.map((article) => (
-               <div 
-                 key={article.id} 
-                 className="group flex items-center bg-white p-5 pr-6 rounded-[1.5rem] border border-stone-100 hover:border-emerald-100 hover:shadow-soft transition-all duration-300"
+               <div
+                 key={article.id}
+                 className="group flex items-center bg-white dark:bg-white/5 p-5 pr-6 rounded-[1.5rem] border border-stone-100 dark:border-white/10 hover:border-emerald-100 dark:hover:border-emerald-500/30 hover:shadow-soft transition-all duration-300"
                >
-                 <div className="w-14 h-14 rounded-2xl mr-5 bg-stone-50 border border-stone-100 flex items-center justify-center overflow-hidden relative">
+                 <div className="w-14 h-14 rounded-2xl mr-5 bg-stone-50 dark:bg-white/10 border border-stone-100 dark:border-white/20 flex items-center justify-center overflow-hidden relative">
                     {article.coverImage ? (
                       <img src={article.coverImage} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <FileText size={24} className="text-stone-400" />
+                      <FileText size={24} className="text-stone-400 dark:text-stone-500" />
                     )}
                  </div>
 
                  <div className="flex-1 py-1">
-                   <h3 className="font-bold text-stone-800 text-lg mb-1 group-hover:text-emerald-600 transition-colors line-clamp-1">{article.title}</h3>
-                   <p className="text-sm text-stone-400 font-medium flex items-center gap-2">
-                      <span className={`w-2.5 h-2.5 rounded-full ${article.published ? 'bg-emerald-400' : 'bg-stone-300'}`} />
+                   <h3 className="font-bold text-stone-800 dark:text-white text-lg mb-1 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors line-clamp-1">{article.title}</h3>
+                   <p className="text-sm text-stone-400 dark:text-stone-500 font-medium flex items-center gap-2">
+                      <span className={`w-2.5 h-2.5 rounded-full ${article.published ? 'bg-emerald-400 dark:bg-emerald-500' : 'bg-stone-300 dark:bg-stone-600'}`} />
                       {article.published ? 'Опубликовано' : 'Черновик'}
                    </p>
                  </div>
@@ -332,14 +332,14 @@ const AdminDashboard = () => {
                    <Button variant="secondary" className="!px-4 !py-2 !text-sm" onClick={() => navigate(`/admin/article/${article.id}`)}>
                      Редактор
                    </Button>
-                   <button onClick={() => deleteArticle(article.id)} className="p-3 rounded-xl text-stone-300 hover:bg-rose-50 hover:text-rose-500 transition-colors">
+                   <button onClick={() => deleteArticle(article.id)} className="p-3 rounded-xl text-stone-300 dark:text-stone-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-500 dark:hover:text-rose-400 transition-colors">
                      <Trash2 size={20} />
                    </button>
                  </div>
                </div>
              ))}
              {articles.length === 0 && (
-                <div className="text-center py-10 border border-dashed border-stone-200 rounded-2xl text-stone-400 text-base">
+                <div className="text-center py-10 border border-dashed border-stone-200 dark:border-white/10 rounded-2xl text-stone-400 dark:text-stone-500 text-base">
                   Нет статей. Создайте первую!
                 </div>
              )}
@@ -457,7 +457,7 @@ const ArticleEditor = () => {
              <FileText size={32} />
            </div>
            <div>
-             <h1 className="text-4xl font-bold text-stone-900 tracking-tight leading-none mb-2">
+             <h1 className="text-4xl font-bold text-stone-900 dark:text-white tracking-tight leading-none mb-2">
                {formData.title || 'Новая статья'}
              </h1>
              <div className="flex items-center gap-2">
@@ -475,7 +475,7 @@ const ArticleEditor = () => {
         {/* Left: Meta */}
         <div className="xl:col-span-1 space-y-6">
           <Card>
-            <h3 className="font-bold text-stone-800 mb-6 text-sm uppercase tracking-wider">Мета-данные</h3>
+            <h3 className="font-bold text-stone-800 dark:text-white mb-6 text-sm uppercase tracking-wider">Мета-данные</h3>
             <Input 
               label="Заголовок статьи" 
               value={formData.title} 
@@ -491,15 +491,15 @@ const ArticleEditor = () => {
             <div className="mb-6">
                <label className="block text-sm font-bold text-stone-500 uppercase tracking-wider mb-2.5 ml-1">Обложка</label>
                <div className="flex gap-3">
-                 <input 
-                   className="w-full bg-white border border-stone-200 rounded-2xl px-5 py-4 transition-all outline-none text-stone-800 placeholder-stone-300 text-base font-medium shadow-sm focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
+                 <input
+                   className="w-full bg-white dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-5 py-4 transition-all outline-none text-stone-800 dark:text-white placeholder-stone-300 dark:placeholder-stone-500 text-base font-medium shadow-sm focus:border-orange-400 focus:ring-4 focus:ring-orange-100 dark:focus:ring-orange-500/20"
                    placeholder="URL изображения..."
-                   value={formData.coverImage || ''} 
-                   onChange={(e: any) => setFormData({...formData, coverImage: e.target.value})} 
+                   value={formData.coverImage || ''}
+                   onChange={(e: any) => setFormData({...formData, coverImage: e.target.value})}
                  />
                  <Tooltip content="Загрузить с устройства" position="top">
-                    <label className="flex-shrink-0 w-16 bg-stone-100 hover:bg-stone-200 rounded-2xl border border-stone-200 flex items-center justify-center cursor-pointer transition-all duration-200 active:scale-95">
-                        <Upload size={24} className="text-stone-500" />
+                    <label className="flex-shrink-0 w-16 bg-stone-100 dark:bg-white/10 hover:bg-stone-200 dark:hover:bg-white/20 rounded-2xl border border-stone-200 dark:border-white/10 flex items-center justify-center cursor-pointer transition-all duration-200 active:scale-95">
+                        <Upload size={24} className="text-stone-500 dark:text-stone-400" />
                         <input 
                         type="file" 
                         hidden 
@@ -510,11 +510,11 @@ const ArticleEditor = () => {
                  </Tooltip>
                </div>
                {formData.coverImage && (
-                 <div className="mt-4 rounded-2xl overflow-hidden border border-stone-200 h-48 relative group bg-stone-50">
+                 <div className="mt-4 rounded-2xl overflow-hidden border border-stone-200 dark:border-white/10 h-48 relative group bg-stone-50 dark:bg-white/5">
                    <img src={formData.coverImage} alt="Preview" className="w-full h-full object-cover" />
-                   <button 
+                   <button
                       onClick={() => setFormData({...formData, coverImage: ''})}
-                      className="absolute top-3 right-3 p-2.5 bg-white/90 rounded-xl text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:text-rose-600"
+                      className="absolute top-3 right-3 p-2.5 bg-white/90 dark:bg-black/80 rounded-xl text-rose-500 dark:text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:text-rose-600"
                    >
                      <Trash2 size={20} />
                    </button>
@@ -558,18 +558,18 @@ const ArticleEditor = () => {
         <div className="xl:col-span-2">
           <div className="space-y-6 pb-8">
              {formData.blocks.map((block, idx) => (
-                <div key={block.id} className="group relative bg-white rounded-[2.5rem] border border-stone-200 shadow-sm hover:shadow-md hover:border-stone-300 transition-all p-8">
-                   
+                <div key={block.id} className="group relative bg-white dark:bg-white/5 rounded-[2.5rem] border border-stone-200 dark:border-white/10 shadow-sm hover:shadow-md hover:border-stone-300 dark:hover:border-white/20 transition-all p-8">
+
                    {/* Controls */}
-                   <div className="absolute right-5 top-5 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 p-1.5 rounded-xl backdrop-blur-sm border border-stone-100 shadow-sm z-20">
-                      <button onClick={() => moveBlock(idx, 'up')} disabled={idx === 0} className="p-2 hover:bg-stone-100 rounded-lg text-stone-400 hover:text-stone-800 disabled:opacity-30"><ArrowUp size={18}/></button>
-                      <button onClick={() => moveBlock(idx, 'down')} disabled={idx === formData.blocks.length - 1} className="p-2 hover:bg-stone-100 rounded-lg text-stone-400 hover:text-stone-800 disabled:opacity-30"><ArrowDown size={18}/></button>
-                      <div className="w-px h-5 bg-stone-200 mx-1"></div>
-                      <button onClick={() => removeBlock(block.id)} className="p-2 hover:bg-rose-50 rounded-lg text-stone-400 hover:text-rose-500"><Trash2 size={18}/></button>
+                   <div className="absolute right-5 top-5 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 dark:bg-black/80 p-1.5 rounded-xl backdrop-blur-sm border border-stone-100 dark:border-white/20 shadow-sm z-20">
+                      <button onClick={() => moveBlock(idx, 'up')} disabled={idx === 0} className="p-2 hover:bg-stone-100 dark:hover:bg-white/20 rounded-lg text-stone-400 hover:text-stone-800 dark:hover:text-white disabled:opacity-30"><ArrowUp size={18}/></button>
+                      <button onClick={() => moveBlock(idx, 'down')} disabled={idx === formData.blocks.length - 1} className="p-2 hover:bg-stone-100 dark:hover:bg-white/20 rounded-lg text-stone-400 hover:text-stone-800 dark:hover:text-white disabled:opacity-30"><ArrowDown size={18}/></button>
+                      <div className="w-px h-5 bg-stone-200 dark:bg-white/20 mx-1"></div>
+                      <button onClick={() => removeBlock(block.id)} className="p-2 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg text-stone-400 hover:text-rose-500 dark:hover:text-rose-400"><Trash2 size={18}/></button>
                    </div>
 
                    {/* Block Type Indicator */}
-                   <div className="absolute left-5 top-5 text-xs font-black text-stone-300 uppercase tracking-wider border border-stone-100 px-2.5 py-1 rounded-lg select-none">
+                   <div className="absolute left-5 top-5 text-xs font-black text-stone-300 dark:text-stone-600 uppercase tracking-wider border border-stone-100 dark:border-white/20 px-2.5 py-1 rounded-lg select-none">
                       {block.type}
                    </div>
 
@@ -577,8 +577,8 @@ const ArticleEditor = () => {
                    <div className="mt-8">
                       {/* HEADER */}
                       {block.type === 'header' && (
-                         <input 
-                           className="w-full text-4xl font-bold text-stone-800 placeholder-stone-300 border-none outline-none bg-transparent leading-tight"
+                         <input
+                           className="w-full text-4xl font-bold text-stone-800 dark:text-white placeholder-stone-300 dark:placeholder-stone-600 border-none outline-none bg-transparent leading-tight"
                            placeholder="Текст заголовка..."
                            value={block.content}
                            onChange={(e) => updateBlock(block.id, 'content', e.target.value)}
@@ -587,9 +587,9 @@ const ArticleEditor = () => {
 
                       {/* TEXT */}
                       {block.type === 'text' && (
-                         <textarea 
+                         <textarea
                            rows={4}
-                           className="w-full text-2xl text-stone-600 placeholder-stone-300 border-none outline-none bg-transparent resize-y leading-loose"
+                           className="w-full text-2xl text-stone-600 dark:text-stone-300 placeholder-stone-300 dark:placeholder-stone-600 border-none outline-none bg-transparent resize-y leading-loose"
                            placeholder="Введите текст абзаца..."
                            value={block.content}
                            onChange={(e) => updateBlock(block.id, 'content', e.target.value)}
