@@ -32,6 +32,7 @@ export interface Category {
   imageUrl?: string; // Deprecated
   theme?: 'orange' | 'rose' | 'blue' | 'violet' | 'emerald' | 'amber';
   sections: Section[];
+  items?: PromptItem[]; // Direct items without sections (optional)
 }
 
 // --- New Types for Instructions CMS ---

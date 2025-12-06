@@ -758,10 +758,10 @@ const ArticleEditor = () => {
 
 const CategoryEditor = () => {
   const { categoryId } = useParams();
-  const { getCategory, updateCategory, addSection, deleteSection, showToast } = useData();
+  const { getCategory, updateCategory, addSection, deleteSection, addCategoryItem, deleteCategoryItem, showToast } = useData();
   const navigate = useNavigate();
   const category = getCategory(categoryId!);
-  
+
   const [formData, setFormData] = useState<Partial<Category>>({});
 
   useEffect(() => {
@@ -785,6 +785,20 @@ const CategoryEditor = () => {
       items: []
     });
     navigate(`/admin/category/${category.id}/section/${newId}`);
+  };
+
+  const handleAddCategoryItem = (type: ItemType) => {
+    const newId = `item-${Date.now()}`;
+    addCategoryItem(category.id, {
+      id: newId,
+      title: type === ItemType.SEQUENCE ? 'Новая связка' : (type === ItemType.ASSISTANT ? 'Новый ассистент' : 'Новый промт'),
+      description: 'Краткое описание',
+      instructions: '',
+      content: '',
+      type: type,
+      subPrompts: []
+    });
+    navigate(`/admin/category/${category.id}/item/${newId}`);
   };
 
   const themes = [
@@ -819,23 +833,23 @@ const CategoryEditor = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-enter" style={{ animationDelay: '0.1s' }}>
         <div className="lg:col-span-1 space-y-6">
           <Card>
-            <h3 className="font-bold text-stone-800 mb-6 flex items-center gap-2">
+            <h3 className="font-bold text-stone-800 dark:text-white mb-6 flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
               Основные настройки
             </h3>
-            <Input 
-              label="Название" 
-              value={formData.title || ''} 
-              onChange={(e: any) => setFormData({...formData, title: e.target.value})} 
+            <Input
+              label="Название"
+              value={formData.title || ''}
+              onChange={(e: any) => setFormData({...formData, title: e.target.value})}
             />
-            <TextArea 
-              label="Описание" 
-              value={formData.description || ''} 
-              onChange={(e: any) => setFormData({...formData, description: e.target.value})} 
+            <TextArea
+              label="Описание"
+              value={formData.description || ''}
+              onChange={(e: any) => setFormData({...formData, description: e.target.value})}
             />
-            
+
             <div className="mb-2">
-              <label className="block text-sm font-bold text-stone-500 uppercase tracking-wider mb-3 ml-1">Акцент (Градиент)</label>
+              <label className="block text-sm font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-3 ml-1">Акцент (Градиент)</label>
               <div className="flex flex-wrap gap-3">
                 {themes.map((t) => (
                   <button
@@ -843,7 +857,7 @@ const CategoryEditor = () => {
                     onClick={() => setFormData({ ...formData, theme: t.id as any })}
                     className={`w-12 h-12 rounded-2xl border-2 transition-all relative shadow-sm ${
                       (formData.theme || 'orange') === t.id
-                        ? 'border-stone-800 scale-105 ring-4 ring-stone-100' 
+                        ? 'border-stone-800 dark:border-white scale-105 ring-4 ring-stone-100 dark:ring-white/20'
                         : 'border-transparent hover:scale-105 hover:shadow-md'
                     }`}
                     style={{ background: t.color }}
@@ -861,36 +875,99 @@ const CategoryEditor = () => {
           </Card>
         </div>
 
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6">
+          {/* Direct Category Items */}
           <Card>
             <div className="flex justify-between items-center mb-8">
                <div>
-                 <h3 className="font-bold text-stone-800 text-xl">Разделы категории</h3>
-                 <p className="text-stone-400 text-sm font-medium mt-1">Структура контента внутри категории</p>
+                 <h3 className="font-bold text-stone-800 dark:text-white text-xl">Промпты категории</h3>
+                 <p className="text-stone-400 dark:text-stone-500 text-sm font-medium mt-1">Прямые промпты без разделов</p>
+               </div>
+               <div className="flex gap-3">
+                 <Button variant="secondary" className="!py-2 !px-4 !text-xs" onClick={() => handleAddCategoryItem(ItemType.PROMPT)}>
+                   <Plus size={16} /> Промт
+                 </Button>
+                 <Button variant="secondary" className="!py-2 !px-4 !text-xs" onClick={() => handleAddCategoryItem(ItemType.SEQUENCE)}>
+                   <Plus size={16} /> Связка
+                 </Button>
+                 <Button variant="secondary" className="!py-2 !px-4 !text-xs" onClick={() => handleAddCategoryItem(ItemType.ASSISTANT)}>
+                   <Plus size={16} /> Ассистент
+                 </Button>
+               </div>
+            </div>
+
+            {(!category.items || category.items.length === 0) ? (
+              <div className="text-center py-12 bg-stone-50/50 dark:bg-white/5 rounded-3xl border border-dashed border-stone-200 dark:border-white/10">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-white dark:bg-white/10 text-stone-300 dark:text-stone-600 mb-4 shadow-sm">
+                  <FileText size={24} />
+                </div>
+                <p className="text-stone-400 dark:text-stone-500 font-medium text-base">Промпты без разделов отсутствуют</p>
+                <p className="text-stone-400 dark:text-stone-600 text-sm mt-1">Добавьте прямые промпты или создайте разделы ниже</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {(category.items || []).map((item, idx) => (
+                  <div key={item.id} className="flex items-center justify-between p-6 rounded-2xl bg-white dark:bg-white/5 border border-stone-100 dark:border-white/10 hover:border-emerald-200 dark:hover:border-emerald-500/30 hover:shadow-soft transition-all group animate-enter" style={{ animationDelay: `${idx * 0.05}s` }}>
+                    <div className="flex items-center gap-5">
+                      <div className={`p-3 rounded-xl ${item.type === ItemType.ASSISTANT ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400' : (item.type === ItemType.SEQUENCE ? 'bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400' : 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400')}`}>
+                        {item.type === ItemType.ASSISTANT ? <Bot size={24} /> : (item.type === ItemType.SEQUENCE ? <Layers size={24} /> : <FileText size={24} />)}
+                      </div>
+                      <div>
+                        <div className="font-bold text-stone-800 dark:text-white text-lg">{item.title}</div>
+                        <div className="text-sm text-stone-400 dark:text-stone-500 truncate max-w-[300px] font-medium mt-1 flex items-center gap-2">
+                          <span className="uppercase text-[10px] tracking-wider bg-stone-100 dark:bg-white/10 px-2 py-0.5 rounded">
+                            {item.type === ItemType.SEQUENCE ? 'Цепочка' : (item.type === ItemType.ASSISTANT ? 'Ассистент' : 'Промт')}
+                          </span>
+                          {item.description}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-3 opacity-80 group-hover:opacity-100 transition-opacity">
+                      <Button variant="secondary" className="!px-4 !py-2 !text-sm" onClick={() => navigate(`/admin/category/${categoryId}/item/${item.id}`)}>
+                        Изменить
+                      </Button>
+                      <Tooltip content="Удалить элемент" position="top">
+                        <button onClick={() => deleteCategoryItem(category.id, item.id)} className="p-3 text-stone-300 dark:text-stone-600 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-colors">
+                          <Trash2 size={20} />
+                        </button>
+                      </Tooltip>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          {/* Sections */}
+          <Card>
+            <div className="flex justify-between items-center mb-8">
+               <div>
+                 <h3 className="font-bold text-stone-800 dark:text-white text-xl">Разделы категории</h3>
+                 <p className="text-stone-400 dark:text-stone-500 text-sm font-medium mt-1">Структура контента с подразделами</p>
                </div>
                <Button variant="secondary" className="!py-2.5 !px-5 !text-sm" onClick={handleAddSection}>
                  <Plus size={18} /> Добавить раздел
                </Button>
             </div>
-            
+
             {category.sections.length === 0 ? (
-              <div className="text-center py-16 bg-stone-50/50 rounded-3xl border border-dashed border-stone-200">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-white text-stone-300 mb-4 shadow-sm">
+              <div className="text-center py-12 bg-stone-50/50 dark:bg-white/5 rounded-3xl border border-dashed border-stone-200 dark:border-white/10">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-white dark:bg-white/10 text-stone-300 dark:text-stone-600 mb-4 shadow-sm">
                   <Folder size={24} />
                 </div>
-                <p className="text-stone-400 font-medium text-base">В этой категории пока нет разделов</p>
+                <p className="text-stone-400 dark:text-stone-500 font-medium text-base">В этой категории пока нет разделов</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {category.sections.map((sec, idx) => (
-                  <div key={sec.id} className="flex items-center justify-between p-6 rounded-2xl bg-white border border-stone-100 hover:border-orange-200 hover:shadow-soft transition-all group animate-enter" style={{ animationDelay: `${idx * 0.05}s` }}>
+                  <div key={sec.id} className="flex items-center justify-between p-6 rounded-2xl bg-white dark:bg-white/5 border border-stone-100 dark:border-white/10 hover:border-orange-200 dark:hover:border-orange-500/30 hover:shadow-soft transition-all group animate-enter" style={{ animationDelay: `${idx * 0.05}s` }}>
                     <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 rounded-xl bg-stone-50 flex items-center justify-center text-stone-400 group-hover:text-orange-500 group-hover:bg-orange-50 transition-colors">
+                      <div className="w-12 h-12 rounded-xl bg-stone-50 dark:bg-white/10 flex items-center justify-center text-stone-400 dark:text-stone-500 group-hover:text-orange-500 dark:group-hover:text-orange-400 group-hover:bg-orange-50 dark:group-hover:bg-orange-500/20 transition-colors">
                         <Folder size={24} />
                       </div>
                       <div>
-                        <div className="font-bold text-stone-800 text-lg group-hover:text-orange-600 transition-colors">{sec.title}</div>
-                        <div className="text-sm text-stone-400 font-medium mt-0.5">{sec.items.length} элементов</div>
+                        <div className="font-bold text-stone-800 dark:text-white text-lg group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">{sec.title}</div>
+                        <div className="text-sm text-stone-400 dark:text-stone-500 font-medium mt-0.5">{sec.items.length} элементов</div>
                       </div>
                     </div>
                     <div className="flex gap-3 opacity-80 group-hover:opacity-100 transition-opacity">
@@ -898,7 +975,7 @@ const CategoryEditor = () => {
                         Открыть
                       </Button>
                       <Tooltip content="Удалить раздел" position="top">
-                        <button onClick={() => deleteSection(category.id, sec.id)} className="p-3 text-stone-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors">
+                        <button onClick={() => deleteSection(category.id, sec.id)} className="p-3 text-stone-300 dark:text-stone-600 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-colors">
                           <Trash2 size={20} />
                         </button>
                       </Tooltip>
@@ -1068,13 +1145,206 @@ const SectionEditor = () => {
   );
 };
 
+// --- Category Item Editor (Direct items, no section) ---
+const CategoryItemEditor = () => {
+  const { categoryId, itemId } = useParams();
+  const { getCategoryItem, updateCategoryItem, showToast } = useData();
+  const navigate = useNavigate();
+  const item = getCategoryItem(categoryId!, itemId!);
+
+  const [formData, setFormData] = useState<Partial<PromptItem>>({});
+
+  useEffect(() => {
+    if (item) setFormData(item);
+  }, [item]);
+
+  if (!item) return <div>Item not found</div>;
+
+  const handleSave = () => {
+    updateCategoryItem(categoryId!, itemId!, formData);
+    showToast('Промт успешно сохранен!');
+    navigate(`/admin/category/${categoryId}`);
+  };
+
+  // Helpers for sub-prompts (used in Assistants and Sequences)
+  const handleAddSubPrompt = () => {
+    const current = formData.subPrompts || [];
+    setFormData({
+      ...formData,
+      subPrompts: [...current, { title: `Шаг ${current.length + 1}`, content: '' }]
+    });
+  };
+
+  const handleUpdateSubPrompt = (idx: number, field: 'title' | 'content', value: string) => {
+    const current = [...(formData.subPrompts || [])];
+    current[idx] = { ...current[idx], [field]: value };
+    setFormData({ ...formData, subPrompts: current });
+  };
+
+  const handleDeleteSubPrompt = (idx: number) => {
+    const current = [...(formData.subPrompts || [])];
+    current.splice(idx, 1);
+    setFormData({ ...formData, subPrompts: current });
+  };
+
+  const isAssistant = formData.type === ItemType.ASSISTANT;
+  const isSequence = formData.type === ItemType.SEQUENCE;
+
+  return (
+    <Layout breadcrumbs={[
+        { label: 'Категория', to: `/admin/category/${categoryId}` },
+        { label: 'Редактор' }
+    ]}>
+      <div className="max-w-5xl mx-auto animate-enter">
+        <div className="flex items-center justify-between mb-12">
+           <div className="flex items-center gap-6">
+              <div className={`w-16 h-16 rounded-[1.5rem] border border-stone-100 dark:border-white/10 flex items-center justify-center shadow-sm ${
+                isAssistant ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400' : (isSequence ? 'bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400' : 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400')
+              }`}>
+                {isAssistant ? <Bot size={30} /> : (isSequence ? <Layers size={30} /> : <FileText size={30} />)}
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold text-stone-900 dark:text-white tracking-tight leading-none mb-2">
+                  Редактирование
+                </h1>
+                <p className="text-stone-400 dark:text-stone-500 text-base font-medium">
+                  {isAssistant ? 'GPT Ассистент' : (isSequence ? 'Связка промтов' : 'Промт')}
+                </p>
+              </div>
+           </div>
+           <div className="flex gap-4">
+             <Button variant="secondary" onClick={() => navigate(-1)}>Отмена</Button>
+             <Button onClick={handleSave}><Save size={18} strokeWidth={3} /> Сохранить</Button>
+           </div>
+        </div>
+
+        <div className="grid gap-8">
+          <Card>
+            <h3 className="font-bold text-stone-800 dark:text-white mb-6 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-stone-800 dark:bg-white"></span>
+              Базовая информация
+            </h3>
+            <div className="grid md:grid-cols-2 gap-8">
+              <Input
+                label="Заголовок"
+                value={formData.title || ''}
+                onChange={(e: any) => setFormData({...formData, title: e.target.value})}
+              />
+              <div className="mb-6">
+                 <label className="block text-sm font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2.5 ml-1">Тип элемента</label>
+                 <div className="relative">
+                    <select
+                      value={formData.type}
+                      onChange={(e) => setFormData({...formData, type: e.target.value as ItemType})}
+                      className="w-full bg-white dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100 dark:focus:ring-orange-500/20 transition-all text-base font-medium text-stone-800 dark:text-white shadow-sm appearance-none"
+                    >
+                      <option value={ItemType.PROMPT}>Промт (Один запрос)</option>
+                      <option value={ItemType.SEQUENCE}>Связка (Несколько шагов)</option>
+                      <option value={ItemType.ASSISTANT}>Ассистент (Настройка GPT)</option>
+                    </select>
+                    <div className="absolute right-5 top-1/2 transform -translate-y-1/2 pointer-events-none text-stone-400 dark:text-stone-500">
+                      <ChevronRight size={20} className="rotate-90" />
+                    </div>
+                 </div>
+              </div>
+            </div>
+            <Input
+                label="Краткое описание (Для списка)"
+                value={formData.description || ''}
+                onChange={(e: any) => setFormData({...formData, description: e.target.value})}
+            />
+          </Card>
+
+          <Card>
+            <h3 className="font-bold text-stone-800 dark:text-white mb-6 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-stone-800 dark:bg-white"></span>
+              Детали контента
+            </h3>
+            <TextArea
+              label="Инструкция по использованию (Общая)"
+              value={formData.instructions || ''}
+              rows={4}
+              onChange={(e: any) => setFormData({...formData, instructions: e.target.value})}
+            />
+
+             {!isSequence && (
+               <div className="mb-4">
+                 <label className="block text-sm font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-3 ml-1">
+                   {isAssistant ? "Custom Instructions (Системный промт)" : "Текст промта"}
+                 </label>
+                 <textarea
+                    rows={18}
+                    className="w-full bg-stone-900 border border-stone-800 rounded-2xl px-8 py-8 transition-all outline-none text-stone-200 font-mono text-base leading-loose shadow-inner resize-y focus:ring-4 focus:ring-stone-800/50"
+                    value={formData.content || ''}
+                    onChange={(e: any) => setFormData({...formData, content: e.target.value})}
+                 />
+               </div>
+             )}
+          </Card>
+
+          {/* Dynamic List for Sequences (and Assistants) */}
+          {(isSequence || isAssistant) && (
+            <div className="border-t border-stone-200 dark:border-white/10 pt-10 mt-4">
+              <div className="flex items-center justify-between mb-8">
+                 <h3 className="text-2xl font-bold text-stone-800 dark:text-white">
+                   {isSequence ? 'Шаги связки (Цепочка)' : 'Дополнительные промты'}
+                 </h3>
+                 <Button variant="secondary" className="!py-2.5 !px-5 !text-sm" onClick={handleAddSubPrompt}>
+                   <Plus size={18} /> Добавить шаг
+                 </Button>
+              </div>
+
+              <div className="space-y-6">
+                 {(formData.subPrompts || []).map((sub, idx) => (
+                   <div key={idx} className="bg-white dark:bg-white/5 p-8 rounded-[2rem] border border-stone-200 dark:border-white/10 shadow-sm relative group hover:border-orange-200 dark:hover:border-orange-500/30 transition-all">
+                      <div className="absolute left-0 top-0 bottom-0 w-2 bg-stone-100 dark:bg-white/10 rounded-l-[2rem] group-hover:bg-orange-400 transition-colors"></div>
+                      <div className="flex justify-between items-start mb-6 pl-3">
+                         <div className="flex items-center gap-4">
+                            <div className="w-8 h-8 rounded-full bg-stone-100 dark:bg-white/10 flex items-center justify-center text-stone-500 dark:text-stone-400 text-sm font-bold">
+                              {idx + 1}
+                            </div>
+                            <input
+                              type="text"
+                              className="bg-transparent font-bold text-xl text-stone-800 dark:text-white border-b border-transparent hover:border-stone-200 dark:hover:border-white/20 focus:border-orange-400 outline-none transition-all w-full"
+                              value={sub.title}
+                              onChange={(e) => handleUpdateSubPrompt(idx, 'title', e.target.value)}
+                              placeholder="Название шага"
+                            />
+                         </div>
+                         <button onClick={() => handleDeleteSubPrompt(idx)} className="text-stone-300 dark:text-stone-600 hover:text-rose-500 dark:hover:text-rose-400 transition-colors">
+                           <X size={24} />
+                         </button>
+                      </div>
+                      <textarea
+                         rows={8}
+                         className="w-full bg-stone-50 dark:bg-white/5 border border-stone-100 dark:border-white/10 rounded-2xl px-6 py-5 outline-none focus:bg-white dark:focus:bg-white/10 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 dark:focus:ring-orange-500/20 transition-all text-base font-mono text-stone-600 dark:text-stone-300 resize-y leading-relaxed"
+                         value={sub.content}
+                         onChange={(e) => handleUpdateSubPrompt(idx, 'content', e.target.value)}
+                         placeholder="Текст промта для этого шага..."
+                      />
+                   </div>
+                 ))}
+                 {(formData.subPrompts || []).length === 0 && (
+                    <div className="text-center py-16 border-2 border-dashed border-stone-200 dark:border-white/10 rounded-[2.5rem] text-stone-400 dark:text-stone-500 text-lg">
+                       Добавьте шаги для этой цепочки
+                    </div>
+                 )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
 // ... ItemEditor and Admin (Unchanged) ...
 const ItemEditor = () => {
   const { categoryId, sectionId, itemId } = useParams();
   const { getItem, updateItem, showToast } = useData();
   const navigate = useNavigate();
   const item = getItem(categoryId!, sectionId!, itemId!);
-  
+
   const [formData, setFormData] = useState<Partial<PromptItem>>({});
 
   useEffect(() => {
@@ -1279,11 +1549,12 @@ const Admin = () => {
   return (
     <Routes>
       <Route path="/" element={<AdminDashboard />} />
-      
+
       <Route path="/category/:categoryId" element={<CategoryEditor />} />
+      <Route path="/category/:categoryId/item/:itemId" element={<CategoryItemEditor />} />
       <Route path="/category/:categoryId/section/:sectionId" element={<SectionEditor />} />
       <Route path="/category/:categoryId/section/:sectionId/item/:itemId" element={<ItemEditor />} />
-      
+
       <Route path="/article/:articleId" element={<ArticleEditor />} />
     </Routes>
   );
