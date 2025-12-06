@@ -3,11 +3,11 @@ import { BrowserRouter, Routes, Route, Link, useParams, Navigate, useLocation } 
 import { DataProvider, useData } from './context/DataContext';
 import Layout from './components/Layout';
 import Tooltip from './components/Tooltip';
-import { 
-  ArrowRight, ArrowLeft, FileText, Bot, Info, Sparkles, Heart, Search, ExternalLink, 
-  Fingerprint, Brain, Target, Feather, Zap, LayoutTemplate, GraduationCap, 
-  MessageCircle, Rocket, Cpu, Palette, Briefcase, User, Layers, ArrowDown, Copy, 
-  Play, BookOpen, CheckCircle, AlertTriangle, Lightbulb, GalleryHorizontal,
+import {
+  ArrowRight, ArrowLeft, FileText, Bot, Info, Sparkles, Heart, Search, ExternalLink,
+  Fingerprint, Brain, Target, Feather, Zap, LayoutTemplate, GraduationCap,
+  MessageCircle, Rocket, Cpu, Palette, Briefcase, User, Layers, ArrowDown, Copy,
+  Play, BookOpen, CheckCircle, AlertTriangle, Lightbulb,
   Check, Circle, Lock, Unlock, X, Globe, Box, Flag, Image as ImageIcon, Video, Music, Map, Grid, List, Star
 } from 'lucide-react';
 import CopyButton from './components/CopyButton';
@@ -285,25 +285,6 @@ const BlockRenderer: React.FC<{ block: ArticleBlock }> = React.memo(({ block }) 
 });
 
 // --- Public Pages ---
-
-const CarouselPage = () => {
-  return (
-    <Layout breadcrumbs={[{ label: 'Конструктор каруселей' }]}>
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center animate-enter">
-         <div className="w-32 h-32 bg-gradient-to-br from-violet-100 to-fuchsia-100 dark:from-violet-900/20 dark:to-fuchsia-900/20 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-soft">
-            <GalleryHorizontal size={56} className="text-violet-500 dark:text-violet-400" strokeWidth={1.5} />
-         </div>
-         <h1 className="text-5xl font-bold text-stone-800 dark:text-white mb-6 tracking-tight">Конструктор каруселей</h1>
-         <p className="text-2xl text-stone-500 dark:text-stone-400 max-w-2xl font-light leading-relaxed">
-            Мы работаем над инструментом, который позволит вам создавать вирусные карусели для соцсетей в пару кликов.
-         </p>
-         <div className="mt-10 px-6 py-3 bg-stone-100 dark:bg-white/10 rounded-full text-stone-500 dark:text-stone-400 text-sm font-bold uppercase tracking-wider">
-            Скоро
-         </div>
-      </div>
-    </Layout>
-  );
-};
 
 const FavoritesPage = () => {
   const { getFavoriteItems } = useData();
@@ -1000,7 +981,6 @@ const App: React.FC = () => {
           <Route path="/favorites" element={<FavoritesPage />} />
           <Route path="/instructions" element={<InstructionsPage />} />
           <Route path="/instructions/:articleId" element={<ArticleDetailPage />} />
-          <Route path="/carousel" element={<CarouselPage />} />
           
           <Route path="/category/:categoryId" element={<CategoryPage />} />
           <Route path="/category/:categoryId/section/:sectionId" element={<SectionPage />} />

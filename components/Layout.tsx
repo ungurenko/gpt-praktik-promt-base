@@ -51,7 +51,6 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs = [] }) => {
     { label: 'Промты', to: '/', icon: LayoutGrid, exact: true },
     { label: 'Избранное', to: '/favorites', icon: Heart },
     { label: 'Инструкции', to: '/instructions', icon: BookOpen },
-    { label: 'Конструктор каруселей', to: '/carousel', icon: GalleryHorizontal },
   ], []);
 
   // --- Sidebar Content Component (Memoized) ---
@@ -109,6 +108,30 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs = [] }) => {
                 </NavLink>
             );
         })}
+
+        {/* Carousel Builder Link */}
+        <a
+          href="https://slide-master.vercel.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`
+            flex items-center gap-3 p-3.5 rounded-xl transition-all duration-200 font-medium text-base group relative
+            ${isCollapsed ? 'justify-center' : ''}
+            text-stone-500 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-white/5 dark:hover:text-white
+          `}
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
+          {isCollapsed ? (
+            <Tooltip content="Конструктор каруселей" position="right" className="w-full h-full flex items-center justify-center">
+              <GalleryHorizontal size={22} strokeWidth={2} className="flex-shrink-0 text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300" />
+            </Tooltip>
+          ) : (
+            <>
+              <GalleryHorizontal size={22} strokeWidth={2} className="flex-shrink-0 text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300" />
+              <span className="whitespace-nowrap text-base">Конструктор каруселей</span>
+            </>
+          )}
+        </a>
 
         {/* Telegram Bot Link */}
         <a
